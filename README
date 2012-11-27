@@ -1,1 +1,9 @@
-comming soon...
+
+移动机器人算法实验
+1、程序仅在player/stage下进行了测试
+2、如果需要编译需要player/stage的支持
+
+Some testing arithmetic for moblie robot
+
+1. These arithmetics only test on player/stage.
+2. If you want to testing, please install player/stage first.
