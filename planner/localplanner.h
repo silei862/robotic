@@ -17,9 +17,19 @@
  */
 
 #include <bridge.h>
+#include <types.h>
 #include <misc.h>
 
 namespace SlamLab
-{
-	void simple_collision_avoid( Position2DBridge& r_pb, RangerBridge& r_rb );
+{	
+	typedef struct
+	{
+		double _ahead_veloc;
+		double _angular_veloc;
+	} SteerCtrl;
+
+	bool goto_pos( Position2DBridge& r_posbr, const Position2D& dest_pos , SteerCtrl& r_stc , double err= 0.5 );
+
+	bool simple_collision_avoid( RangerBridge& r_rb, SteerCtrl& r_stc );
+
 }

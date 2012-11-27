@@ -44,4 +44,4 @@ ADD_SUBDIRECTORY ( mapbuilder )
 ADD_SUBDIRECTORY ( vfh )
 ADD_SUBDIRECTORY ( planner )
 ADD_SUBDIRECTORY ( test ) 
-
+ADD_SUBDIRECTORY ( tools )

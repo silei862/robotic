@@ -52,11 +52,12 @@ int main( int argc, char* argv[] )
 	map_builder.attach_position2d( pos2d_bridge );
 	HIMMGrid map(20.0,20.0,0.2,Point2D<double>(-10.0,-10.0));
 	map.set_all_val(0);
-	
+	SteerCtrl stc;	
 	for(;;)
 	{
 		robot.Read();
-		simple_collision_avoid( pos2d_bridge, ranger_bridge );
+		simple_collision_avoid( ranger_bridge , stc );
+		pos2d_bridge.set_speed( stc._ahead_veloc, stc._angular_veloc );
 		ranger_bridge>>map_builder>>map;
 		// 获取地图窗口并输出
 		double rx=pos2d_bridge.get_x_pos();

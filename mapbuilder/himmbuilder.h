@@ -30,7 +30,7 @@ namespace SlamLab
 		{
 			DEF_TPLSIZE =3,
 			TPL_NUM = DEF_TPLSIZE*DEF_TPLSIZE,
-			DEF_INC	=5,
+			DEF_INC	=3,
 			DEF_DEC =1,
 			DEF_MAX =15
 		};

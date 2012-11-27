@@ -54,17 +54,30 @@ int main( int argc, char* argv[] )
 	// 地图初始化
 	HIMMGrid map(20.0,20.0,0.2,Point2D<double>(-10.0,-10.0));
 	map.set_all_val(0);
-	// 画布的初始化
+	// 行走控制结构
+	SteerCtrl stc;
 	// 地图绘制
 	for(;;)
 	{
 		robot.Read();
-		// 调用防撞算法：
-		simple_collision_avoid( pos2d_bridge, ranger_bridge );
 		// 绘制地图：
 		ranger_bridge>>map_builder>>map;
 		// 在控制台显示地图：
 		cout<<map;
+
+		// 调用防撞漫游控制计算函数：
+		if(simple_collision_avoid( ranger_bridge , stc ))
+		{
+			pos2d_bridge.set_speed( stc._ahead_veloc , stc._angular_veloc );
+			continue;
+		}
+		// 进行短期目标测试
+		bool acheived = goto_pos(pos2d_bridge,Position2D(6,6),stc);
+		if( acheived )
+			break;
+		else
+			pos2d_bridge.set_speed( stc._ahead_veloc , stc._angular_veloc );
+
 	}
 	return EXIT_SUCCESS;
 }

@@ -25,6 +25,7 @@
 #include <misc.h>
 #include <vfh.h>
 #include <vfhplanner.h>
+#include <localplanner.h>
 
 using namespace SlamLab;
 using namespace std;
@@ -74,14 +75,16 @@ int main( int argc, char* argv[] )
 	}
 	// 正式开始运行
 	DirectionGroup dds;
+	SteerCtrl stc; 
+		
 	for(;;)
 	{
 		robot.Read();
 		double rx=pos2d_bridge.get_x_pos();
 		double ry=pos2d_bridge.get_y_pos();
 		double yaw=pos2d_bridge.get_yaw();
-		//simple_collision_avoid( pos2d_bridge, ranger_bridge );
-		pos2d_bridge.set_speed( 0.0,0.6 );
+		simple_collision_avoid( ranger_bridge, stc );
+		pos2d_bridge.set_speed( stc._ahead_veloc, stc._angular_veloc );
 		ranger_bridge>>map_builder>>map>>ph_builder( rx,ry,5.0)>>ph>>bin_ph_builder(10)>>bin_ph;
 		dds.clear();
 		gap_finder( bin_ph , dds , Position2D( rx ,ry ) );
