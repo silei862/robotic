@@ -1,2 +1,0 @@
-/usr/bin/ar cr libmapbuilder.a  CMakeFiles/mapbuilder.dir/himmbuilder.cxx.o
-/usr/bin/ranlib libmapbuilder.a

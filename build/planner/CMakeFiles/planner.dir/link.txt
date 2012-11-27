@@ -1,2 +1,0 @@
-/usr/bin/ar cr libplanner.a  CMakeFiles/planner.dir/vfhplanner.cxx.o CMakeFiles/planner.dir/localplanner.cxx.o
-/usr/bin/ranlib libplanner.a

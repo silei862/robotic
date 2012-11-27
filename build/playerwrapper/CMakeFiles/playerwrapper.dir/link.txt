@@ -1,2 +1,0 @@
-/usr/bin/ar cr libplayerwrapper.a  CMakeFiles/playerwrapper.dir/playerwrapper.cxx.o
-/usr/bin/ranlib libplayerwrapper.a

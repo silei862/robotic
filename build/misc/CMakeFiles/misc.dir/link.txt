@@ -1,2 +1,0 @@
-/usr/bin/ar cr libmisc.a  CMakeFiles/misc.dir/coord.cxx.o CMakeFiles/misc.dir/misc.cxx.o
-/usr/bin/ranlib libmisc.a

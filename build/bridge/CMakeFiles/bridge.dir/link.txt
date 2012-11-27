@@ -1,2 +1,0 @@
-/usr/bin/ar cr libbridge.a  CMakeFiles/bridge.dir/bridge.cxx.o
-/usr/bin/ranlib libbridge.a

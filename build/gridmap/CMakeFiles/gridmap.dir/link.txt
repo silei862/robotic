@@ -1,2 +1,0 @@
-/usr/bin/ar cr libgridmap.a  CMakeFiles/gridmap.dir/himmgrid.cxx.o
-/usr/bin/ranlib libgridmap.a
