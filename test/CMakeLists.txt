@@ -36,6 +36,19 @@ TARGET_LINK_LIBRARIES( mapping mapbuilder
 							   misc
 					 		   ${PLAYERCXX_LIBRARIES}
 					 )
+
+############## Goto Position #########
+ADD_EXECUTABLE( goto_pos gotopos_test.cxx )
+TARGET_LINK_LIBRARIES( goto_pos mapbuilder
+							   playerwrapper
+							   bridge
+							   gridmap
+							   planner
+							   misc
+					 		   ${PLAYERCXX_LIBRARIES}
+					 )
+
+
 ############## MapWin #############
 ADD_EXECUTABLE( mapwin mapwin.cxx )
 TARGET_LINK_LIBRARIES( mapwin mapbuilder

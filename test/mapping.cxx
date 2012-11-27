@@ -37,6 +37,16 @@ enum _CONST
 	RANGER_INDEX =0,
 };
 
+// 目标位置坐标：
+static const size_t pos_num = 18;
+static const Position2D positions[] = { Position2D(-7,6) ,Position2D(-6,5.5), Position2D(-2.5,5.5),
+										Position2D(-2,3) ,Position2D( -2,7 ) , Position2D(0,7), 
+										Position2D( 6, 6 ) , Position2D(6.5,4.5) , Position2D(0,2.5),
+										Position2D(-2,2) , Position2D(-2,-2) , Position2D(0,-1.5), 
+										Position2D(5,-1.5) , Position2D(7,-4), Position2D(4,-4),
+										Position2D(3,-6.5), Position2D(0,-6.5),Position2D(-7,-7) };
+static size_t pos_index = 0;
+
 int main( int argc, char* argv[] )
 {
 	// Player/Stage模拟器初始化
@@ -56,6 +66,15 @@ int main( int argc, char* argv[] )
 	map.set_all_val(0);
 	// 行走控制结构
 	SteerCtrl stc;
+	// 对环境预先扫描
+	for( int i=0;i<10;i++ )
+	{
+		robot.Read();
+		double rx=pos2d_bridge.get_x_pos();
+		double ry=pos2d_bridge.get_y_pos();
+		double yaw=pos2d_bridge.get_yaw();
+		pos2d_bridge.set_speed( 0.0,0.7 );
+	}
 	// 地图绘制
 	for(;;)
 	{
@@ -72,9 +91,13 @@ int main( int argc, char* argv[] )
 			continue;
 		}
 		// 进行短期目标测试
-		bool acheived = goto_pos(pos2d_bridge,Position2D(6,6),stc);
+		bool acheived = goto_pos(pos2d_bridge,positions[pos_index],stc);
 		if( acheived )
-			break;
+		{
+			pos_index ++;
+			if( pos_index >= pos_num )
+				break;
+		}
 		else
 			pos2d_bridge.set_speed( stc._ahead_veloc , stc._angular_veloc );
 

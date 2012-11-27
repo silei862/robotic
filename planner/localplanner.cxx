@@ -43,8 +43,11 @@ bool SlamLab::goto_pos( Position2DBridge& r_posbr , const Position2D& dest_pos ,
 	if( delta_beta < -1*PI )
 		delta_beta += 2*PI;
 	// 计算角速度产生速度控制
-	r_stc._angular_veloc = delta_beta/5;
-	r_stc._ahead_veloc = 0.6;
+	r_stc._angular_veloc = delta_beta/3;
+	if( fabs(r_stc._angular_veloc) > 0.05 )
+		r_stc._ahead_veloc = 0.2;
+	else
+		r_stc._ahead_veloc = 0.6;
 	return false;
 }
 
@@ -52,7 +55,7 @@ bool SlamLab::goto_pos( Position2DBridge& r_posbr , const Position2D& dest_pos ,
 // ------------------------- simple collision avoid ---------------------------
 static const double safe_distance = 0.5;
 static const double default_speed = 0.7;
-static const double default_turnrate = 0.7;
+static const double default_turnrate = 1.7;
 
 bool SlamLab::simple_collision_avoid( RangerBridge& r_rb , SteerCtrl& r_stc )
 {
@@ -74,10 +77,14 @@ bool SlamLab::simple_collision_avoid( RangerBridge& r_rb , SteerCtrl& r_stc )
 	{
 		Pose3D& r_pose = r_rb.get_pose(min_index);
 		speed = 0.0;
-		if( r_pose._rz >( PI/(-4)) && r_pose._rz<(PI/4) )
+		/* 	if( r_pose._rz >( PI/(-4)) && r_pose._rz<(PI/4) )
 			turnrate= default_turnrate;
 		else
-			turnrate= r_pose._rz/(-4);
+			turnrate= r_pose._rz/(-4); */
+		if( r_pose._rz >0 )
+			turnrate = -1*default_turnrate;
+		else
+			turnrate = default_turnrate;
 		ret_val = true;
 	}
 	r_stc._ahead_veloc = speed;
