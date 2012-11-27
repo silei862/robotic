@@ -1,0 +1,2 @@
+/usr/bin/ar cr libvfh.a  CMakeFiles/vfh.dir/vfh.cxx.o
+/usr/bin/ranlib libvfh.a

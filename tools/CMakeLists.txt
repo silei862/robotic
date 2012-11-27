@@ -1,0 +1,23 @@
+# 查找opencv库
+PKG_SEARCH_MODULE( OPENCV opencv >= 2.0 )
+IF( OPENCV_FOUND )
+	MESSAGE( STATUS ${INDENT} "OpenCV version ${OPENCV_VERSION} detected at ${OPENCV_PREFIX}" )
+	MESSAGE( STATUS "	OpenCV C++ CFLAGS: ${OPENCV_CFLAGS}" )
+	MESSAGE( STATUS "	OpenCV C++ LDFLAGS: ${OPENCV_LDFLAGS}" )
+	MESSAGE( STATUS "	OpenCV C++ LIBS: ${OPENCV_LIBRARIES}" )
+ELSE( OPENCV_FOUND )
+	MESSAGE( STATUS ${INDENT} "OpenCV not detected. If OpenCV is installed but not detected , check your PKG_CONFIG_PATH." )
+ENDIF( OPENCV_FOUND )
+
+#------------- 变量设置 ------------------------------
+SET (MAPVIEWER_SRC  canvas_test.cxx cvcanvas.cxx cvdraw.cxx )
+SET (MAPVIEWER_BIN mapviewer )
+
+INCLUDE_DIRECTORIES ( ${OPENCV_INCLUDE_DIRS} )
+
+LINK_DIRECTORIES ( ${OPENCV_LIBRARY_DIRS} )
+
+ADD_LIBRARY (${MAPVIEWER_BIN} STATIC ${MAPVIEWER_SRC})
+
+TARGET_LINK_LIBRARIES ( ${MAPVIEWER_BIN} ${OPENCV_LIBRARIES})
+
