@@ -52,7 +52,7 @@ int main( int argc, char* argv[] )
 	HIMMBuilder map_builder;
 	map_builder.attach_position2d( pos2d_bridge );
 	// 地图初始化
-	HIMMGrid map(20.0,20.0,0.1,Point2D<double>(-10.0,-10.0));
+	HIMMGrid map(20.0,20.0,0.2,Point2D<double>(-10.0,-10.0));
 	map.set_all_val(0);
 	// 画布的初始化
 	// 地图绘制
