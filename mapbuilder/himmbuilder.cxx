@@ -27,7 +27,7 @@ using namespace SlamLab;
 const double HIMMBuilder::tpl_val[TPL_NUM]={ 0.5, 0.5, 0.5, \
 						   					  0.5, 1.0, 0.5, \
 											  0.5, 0.5, 0.5 };
-const double HIMMBuilder::max_reading = 8.0;
+const double HIMMBuilder::max_reading = 5.0;
 const double HIMMBuilder::min_reading = 0.0;
 HIMMBuilder::HIMMBuilder( uint8_t inc , 
 			uint8_t dec , 
@@ -57,21 +57,26 @@ void HIMMBuilder::build()
 		// 获取传感器数据
 	    double rg_reading = (*p_ranger)[i];
 		// 丢弃那些超出范围的测量值
-		if( rg_reading >=max_reading || rg_reading <= min_reading )
-			break;
+		//if( rg_reading >=max_reading || rg_reading <= min_reading )
+		//	break;
 		// 获取传感器安装姿态，作为修正
 		Pose3D& ranger_pose = p_ranger->get_pose( i );
 		Point3D<double> rg_pos = ranger_pose._pos;
 		//计算传感器到中心的距离：
-		double dist_ranger = sqrt( rg_pos._x*rg_pos._x+rg_pos._y*rg_pos._y+rg_pos._z*rg_pos._z );
+		//double dist_ranger = sqrt( rg_pos._x*rg_pos._x+rg_pos._y*rg_pos._y+rg_pos._z*rg_pos._z );
 		//计算实际距离：
-		double dist=( dist_ranger+rg_reading );//*cos(ranger_pose._ry);
+		//double dist=( dist_ranger+rg_reading );//*cos(ranger_pose._ry);
 		//计算障碍点的坐标：
-		double ob_x = robot_x + dist*cos( ranger_pose._rz + robot_yaw );
-		double ob_y = robot_y + dist*sin( ranger_pose._rz + robot_yaw );
+		double ob_x = robot_x + rg_pos._x + rg_reading*cos( ranger_pose._rz + robot_yaw );
+		double ob_y = robot_y + rg_pos._y + rg_reading*sin( ranger_pose._rz + robot_yaw );
 		// 更新地图
-		cell_inc( ob_x , ob_y );
-		cell_dec( robot_x+rg_pos._x , robot_y+rg_pos._y, ob_x , ob_y );
+		if( rg_reading >= max_reading || rg_reading <= min_reading )
+			cell_dec( robot_x , robot_y , ob_x , ob_y );
+		else
+		{
+			cell_inc( ob_x , ob_y );
+			cell_dec( robot_x , robot_y , ob_x , ob_y );
+		}
 	}
 }
 

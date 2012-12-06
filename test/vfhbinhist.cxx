@@ -79,7 +79,7 @@ int main( int argc, char* argv[] )
 		double ry=pos2d_bridge.get_y_pos();
 		double yaw=pos2d_bridge.get_yaw();
 	//	simple_collision_avoid( pos2d_bridge, ranger_bridge );
-		pos2d_bridge.set_speed(0.0,0.7);
+		pos2d_bridge.set_speed(0.0,0.0);
 		ranger_bridge>>map_builder>>map>>ph_builder( rx,ry,5.0)>>ph>>bin_ph_builder(10)>>bin_ph;
 		// 输出二值直方图
 		cout<<bin_ph<<endl; 

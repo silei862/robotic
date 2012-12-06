@@ -96,7 +96,8 @@ int main( int argc, char* argv[] )
 		{
 			pos_index ++;
 			if( pos_index >= pos_num )
-				break;
+				pos_index =0;
+			
 		}
 		else
 			pos2d_bridge.set_speed( stc._ahead_veloc , stc._angular_veloc );
