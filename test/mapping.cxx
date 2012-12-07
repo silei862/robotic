@@ -25,6 +25,7 @@
 #include <misc.h>
 #include <vfh.h>
 #include <localplanner.h>
+#include <mapfile.h>
 
 using namespace SlamLab;
 using namespace std;
@@ -96,13 +97,15 @@ int main( int argc, char* argv[] )
 		{
 			pos_index ++;
 			if( pos_index >= pos_num )
-				pos_index =0;
+				break;
 			
 		}
 		else
 			pos2d_bridge.set_speed( stc._ahead_veloc , stc._angular_veloc );
 
 	}
+	// 地图数据的保存
+	himm_savemap( map,"./20012.map"	);
 	return EXIT_SUCCESS;
 }
 
