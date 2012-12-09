@@ -92,4 +92,6 @@ TARGET_LINK_LIBRARIES( gone mapbuilder
 					 		  ${PLAYERCXX_LIBRARIES}
 					 )
 
+############## Function Wrapper ################
+ADD_EXECUTABLE( funcwrapper funcwrapper.cxx )
 
