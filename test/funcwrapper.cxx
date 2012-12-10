@@ -40,7 +40,10 @@ class Ball
 		{
 			return a+b;
 		}
-
+		float f( float x , int b ,int c)
+		{
+			return x*b/c;
+		}
 };
 
 float pow( float a ,int x )
@@ -65,9 +68,12 @@ int main()
 
 	MFuncWrapper< int( Ball, int , int ) > add( &sball , &Ball::add );
 	cout<<"add( 2 , 3 )="<<add( 2 , 3 )<<endl;
+
+	MFuncWrapper< float( Ball , float , int , int ) > f( & sball , &Ball::f );
+	cout<<"f(10.0 , 4 ,5 )="<<f( 10.0 , 4 , 5 )<<endl;
 	
 	FuncWrapper< float( float , int ) > wpow( &pow );
-	cout<<"wpow( 2 , 8 )="<<wpow( 2.0 ,8 )<<endl;
+	cout<<"wpow( 2.0 , 8 )="<<wpow( 2.0 ,8 )<<endl;
 
 	return EXIT_SUCCESS;
 }
