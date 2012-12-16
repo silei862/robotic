@@ -68,14 +68,14 @@ int main( int argc, char* argv[] )
 	// 行走控制结构
 	SteerCtrl stc;
 	// 对环境预先扫描
-	for( int i=0;i<10;i++ )
+	/*for( int i=0;i<10;i++ )
 	{
 		robot.Read();
 		double rx=pos2d_bridge.get_x_pos();
 		double ry=pos2d_bridge.get_y_pos();
 		double yaw=pos2d_bridge.get_yaw();
 		pos2d_bridge.set_speed( 0.0,0.7 );
-	}
+	}*/
 	// 地图绘制
 	for(;;)
 	{

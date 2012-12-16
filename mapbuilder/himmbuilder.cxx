@@ -56,27 +56,19 @@ void HIMMBuilder::build()
 	{
 		// 获取传感器数据
 	    double rg_reading = (*p_ranger)[i];
-		// 丢弃那些超出范围的测量值
-		//if( rg_reading >=max_reading || rg_reading <= min_reading )
-		//	break;
 		// 获取传感器安装姿态，作为修正
 		Pose3D& ranger_pose = p_ranger->get_pose( i );
 		Point3D<double> rg_pos = ranger_pose._pos;
-		//计算传感器到中心的距离：
-		//double dist_ranger = sqrt( rg_pos._x*rg_pos._x+rg_pos._y*rg_pos._y+rg_pos._z*rg_pos._z );
-		//计算实际距离：
-		//double dist=( dist_ranger+rg_reading );//*cos(ranger_pose._ry);
+		// 计算传感器全局坐标：
+		double rg_x = robot_x + rg_pos._x*cos( robot_yaw ) - rg_pos._y*sin( robot_yaw );
+		double rg_y = robot_y + rg_pos._x*sin( robot_yaw ) + rg_pos._y*cos( robot_yaw );
 		//计算障碍点的坐标：
-		double ob_x = robot_x + rg_pos._x + rg_reading*cos( ranger_pose._rz + robot_yaw );
-		double ob_y = robot_y + rg_pos._y + rg_reading*sin( ranger_pose._rz + robot_yaw );
-		// 更新地图
-		if( rg_reading >= max_reading || rg_reading <= min_reading )
-			cell_dec( robot_x , robot_y , ob_x , ob_y );
-		else
-		{
+		double ob_x = rg_x + rg_reading*cos( ranger_pose._rz + robot_yaw );
+		double ob_y = rg_y + rg_reading*sin( ranger_pose._rz + robot_yaw );
+		// 更新地图,只有在传感器读数处于范围内方才进行增量计算：
+		if( rg_reading < max_reading )	
 			cell_inc( ob_x , ob_y );
-			cell_dec( robot_x , robot_y , ob_x , ob_y );
-		}
+		cell_dec( robot_x , robot_y , ob_x , ob_y );
 	}
 }
 
@@ -89,9 +81,8 @@ HIMMGrid& HIMMBuilder::operator>>( HIMMGrid& r_hg )
 
 void HIMMBuilder::cell_inc( double x , double y )
 {
-	// 边界检查：
-	//if( !p_map->in( x,y ) )
-	//	return;
+	if( !p_map->in( x ,y ) )
+		return ;
 	int cell_val = int((*p_map)( x, y));
 	// 生成模板坐标索引：
 	for( int p = -1 ; p <=1 ; p++ )
@@ -99,17 +90,17 @@ void HIMMBuilder::cell_inc( double x , double y )
 		{
 			double cx = x + p_map->cell_size()*double(q);
 			double cy = y + p_map->cell_size()*double(p);
-			// 边界检查：
-			//if( !p_map->in( cx , cy ) )
-			//	break;
-			uint8_t nc_val = (*p_map)(cx,cy);
-			cell_val+=int(double(nc_val)*tpl_val[p*DEF_TPLSIZE+q+TPL_NUM/2]);
+			if( p_map->in( cx ,cy ) )
+			{
+				uint8_t nc_val = (*p_map)(cx,cy);
+				cell_val+=int(double(nc_val)*_tpl[p+1][q+1]);
+			}
 		}
 	cell_val+=_inc;
-	//DBG_RUN( std::cout<<cell_val<<" " );
 	// 限制上限值：
 	if( cell_val > _max )
 		cell_val = _max;
+	// 回写：
 	(*p_map)(x,y) = uint8_t(cell_val);
 }
 
@@ -147,9 +138,9 @@ void HIMMBuilder::cell_dec( double x0,double y0,double x1,double y1 )
 		bx +=inc_x;
 		by +=inc_y;
 		if( !p_map->in( bx,by ) )
-			break;
+			continue;
 		int cell_val =int((*p_map)( bx , by ));
-		cell_val -=_inc;
+		cell_val -=_dec;
 		if( cell_val < 0 )
 			cell_val =0;
 		(*p_map)( bx , by ) = cell_val; 

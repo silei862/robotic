@@ -43,7 +43,7 @@ Pose3D& SonarPlayer::get_pose( size_t index )
 // ---------------------- player ranger wrapper ---------------------
 double RangerPlayer::get_data( size_t index )
 {
-	//r_ranger.GetIndex();
+	r_ranger.GetIndex();
 	return r_ranger[index];
 }
 

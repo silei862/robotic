@@ -30,18 +30,24 @@ const double HIMMUVGen::def_max_reading = 5.0;
 const double HIMMUVGen::def_min_reading = 0.0;
 
 // ----------------------- 对外接口 --------------------------------
-HIMMUVGen::HIMMUVGen( double c_sz, int inc , int dec , double max_reading )
-	:_cell_size( c_sz ),_inc( inc ) , _dec( dec ), _max_reading( max_reading )
+HIMMUVGen::HIMMUVGen( int inc , int dec , double max_reading )
+	:_inc( inc ) , _dec( dec ), _max_reading( max_reading )
 {
 	// 更新模板的初始化，装载预设定数组
 	for( int y = 0; y < DEF_TPL_SIZE; y++ )
 		for( int x =0; x < DEF_TPL_SIZE; x++ )
 			_tpl[y][x] = tpl_val[ y*DEF_TPL_SIZE+x ];
+	// 将关联类型指针初始化为空
+	p_pos2d = NULL;
+	p_ranger = NULL;
+	p_uvectors = NULL;
+	p_himmgrid = NULL;
 }
 
-HIMMUVGen& HIMMUVGen::operator()( Position2DBridge& r_pos2d )
+HIMMUVGen& HIMMUVGen::operator()( Position2DBridge& r_pos2d, HIMMGrid& r_hg )
 {
 	set_pos2d( r_pos2d );
+	set_himmgrid( r_hg );
 	return *this;
 }
 
@@ -66,7 +72,12 @@ void HIMMUVGen::set_ranger( RangerBridge& r_ranger )
 
 void HIMMUVGen::set_uvector( uvectors_t& r_uvs )
 {
-	p_uvectors = r_uvs;
+	p_uvectors = &r_uvs;
+}
+
+void HIMMUVGen::set_himmgrid( HIMMGrid& r_hg )
+{
+	p_himmgrid = &r_hg;
 }
 
 // 更新向量生成器
@@ -105,11 +116,54 @@ void HIMMUVGen::inc_vec_gen( double x , double y )
 	for( int q = -1 ; q <= 1 ; q ++ )
 		for( int p = -1 ; p <=1 ; p++ )
 		{
-
+			// 计算3X3范围的单元坐标：
+			double cell_x = x + p_himmgrid->cell_size()*double(p);
+			double cell_y = y + p_himmgrid->cell_size()*double(q);
+			// 边界检查,在网格内则累加到变化量上
+			if( p_himmgrid->in( cx ,cy ) )
+				delta += _tpl[q][p]*(*p_himmgrid)( cell_x , cell_y );	
 		}
+	// 最后再加上更新值：
+	delta += _inc;
+	// 生成更新单元并加入更新向量组
+	update_vector_t uv = { x , y , delta };
+	p_uvectors->push_back( uv );
+	
 }
 
 void HIMMUVGen::dec_vec_gen( double x0, double y0, double x1, double y1 )
 {
-
+	// 计算两个坐标之间的差值及对应绝对值
+	double delta_x = x1 - x0;
+	double delta_y = y1 - y0;
+	double abs_dx = fabs( delta_x );
+	double abs_dy = fabs( delta_y );
+	// 获取单元格边长
+	double cell_size = p_himmgrid->cell_size();
+	// 步数
+	size_t step_num;
+	// 如果变化量不足一个单元格，则不处理
+	if( abs_dx < cell_size && abs_dy < cell_size )
+		return;
+	// 变化量大的作为步数的计数基准
+	if( abs_dx > abs_dy )
+		step_num = size_t( abs_dx/cell_size );
+	else
+		step_num = size_t( abs_dy/cell_size );
+	// 分别计算步长：
+	double step_x = delta_x/step_num;
+	double step_y = delta_y/step_num;
+	// 初始化步长坐标：
+	double xx = x0;
+	double yy = y0;
+	// 生成x0,y0到x1,y1连线间的网格坐标,最后一格不做减量
+	for( size_t i = 0 ; i < step_num-1 ; i++ )
+	{
+		// 生成更新向量并加入更新向量组：
+		update_vector_t uv = { xx , yy , _dec };
+		p_uvectors->push_back( uv );
+		// 计算下一步的坐标
+		xx += step_x;
+		yy += step_y;
+	}
 }
