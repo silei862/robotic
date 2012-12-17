@@ -20,6 +20,7 @@
 #ifndef _DEBUG_H_
 #define _DEBUG_H_
 
+#include <stdlib.h>
 #include <iostream>
 #include <string>
 #include "exception.h"
@@ -28,12 +29,19 @@
 #define _TO_STR( a ) #a
 
 // 条件断言，如果为假则抛出异常
-#define _ASSERT( con )																\
-	if ( !con )																		\
-		throw(Exception(std::string("Assert Failure:")+std::string(_TO_STR(con)),	\
-			 			Exception::EXID_ASSERTFAIL,									\
-						std::string(__FILE__),										\
-						__LINE__));		
+//#define _ASSERT( con )																\
+//	if ( !con )																		\
+//		throw(Exception(std::string("Assert Failure:")+std::string(_TO_STR(con)),	\
+//			 			Exception::EXID_ASSERTFAIL,									\
+//						std::string(__FILE__),										\
+//						__LINE__));	
+
+// 如果条件不满足，则终止程序执行
+#define _ASSERT( con ) 		\
+	if( !(con) ){			\
+		std::cerr<<"Error:"<<__FILE__<<"["<<__LINE__<<"] assert failure: "<<_TO_STR( con )<<std::endl;	\
+		exit(EXIT_FAILURE);	}
+
 
 // 调试编译开关
 #ifdef DEBUG

@@ -95,3 +95,5 @@ TARGET_LINK_LIBRARIES( gone mapbuilder
 ############## Function Wrapper ################
 ADD_EXECUTABLE( funcwrapper funcwrapper.cxx )
 
+############## Debug Test ######################
+ADD_EXECUTABLE( dtest dtest.cxx )

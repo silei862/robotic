@@ -27,7 +27,6 @@ namespace SlamLab
 {
 	typedef Grid< uint8_t > HIMMGrid;
 	typedef GridWin< uint8_t> HIMMWin;
-	
 }
 
 namespace std

@@ -86,13 +86,27 @@ namespace SlamLab
 			inline uint32_t cell_cols(){ return _grid_data.col_size(); }
 			inline uint32_t cell_rows(){ return _grid_data.row_size(); }
 			// 获取网格坐标
-			Point2D<double> cell_coord( uint32_t x, uint32_t y ) const
+			inline Point2D<double> cell_coord( uint32_t x, uint32_t y ) const
 			{
 				Point2D<double> center;
 				center._x = _origin._x + _cell_size*double(x)+_cell_size/2;
 				center._y = _origin._y + _cell_size*double(y)+_cell_size/2;
 				return center;
 			}
+			// 将坐标转换为行列序号
+			inline Point2D<uint32_t> pos2sq( double x , double y ) const
+			{
+				Point2D<uint32_t> sq;
+				sq._x = uint32_t((x-_origin._x)/_cell_size);
+				sq._y = uint32_t((y-_origin._y)/_cell_size);
+				return sq;
+			}
+
+			inline Point2D<uint32_t> pos2sq( Point2D<double> pos ) const
+			{
+				return pos2sq( pos._x , pos._y );
+			}
+
 			// 越界判断
 			bool in(double x,double y)
 			{
