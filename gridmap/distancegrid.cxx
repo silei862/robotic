@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 #include <stdlib.h>
+#include <stdint.h>
 #include <distancegrid.h>
 
 using namespace std;
@@ -27,7 +28,7 @@ void DistanceMap::_init_map_data( )
 {
 	// 将所有网格单元均设为最大距离，且关联障碍格坐标为（0，0）
 	_max_distance = _grid.width()*_grid.height();
-	dm_cell_t dc = { _max_distance , Point2D<size_t>( 0 , 0 ) };
+	dm_cell_t dc = { _max_distance , grid_pos_t( 0 , 0 ) };
 	_grid.set_all_val( dc );
 	_queue_add.clear();
 	_queue_clr.clear();
@@ -61,3 +62,103 @@ DistanceMap::DistanceMap( const DistanceMap& dm )
 	_queue_clr.clear();
 }
 
+// --------------------- 对外接口----------------------
+// 获取距离网格各类基本属性
+inline size_t DistanceMap::cols()
+{
+	return size_t(_grid.cell_cols());
+}
+
+inline size_t DistanceMap::rows()
+{
+	return size_t(_grid.cell_rows());
+}
+
+inline double DistanceMap::width()
+{
+	return _grid.width();
+}
+
+inline double DistanceMap::height()
+{
+	return _grid.height();
+}
+
+inline double DistanceMap::cell_size()
+{
+	return _grid.cell_size();
+}
+
+inline float_pos_t DistanceMap::origin()
+{
+	return _grid.get_origin();
+}
+
+// 获取距离网格引用
+inline dm_data_t& DistanceMap::get_dm_grid()
+{
+	return _grid;
+}
+// 获取距离网格的窗口
+inline dm_win_t DistanceMap::get_win( float_pos_t org , double width , double height )
+{
+	return _grid.get_win( org._x , org._y , width , height );
+}
+
+inline dm_win_t DistanceMap::get_win( float_pos_t org , double radius )
+{
+	return _grid.get_win( org._x , org._y , radius );
+}
+// 坐标转换为行列序号：
+inline grid_pos_t DistanceMap::pos2sq( float_pos_t pos )
+{
+	grid_pos_t sq;
+	Point2D<uint32_t> usq = _grid.pos2sq( pos );
+	sq._x = size_t( usq._x );
+	sq._y = size_t( usq._y );
+	return sq;
+}
+
+inline grid_pos_t DistanceMap::pos2sq( double x , double y )
+{
+	grid_pos_t sq;
+	Point2D<uint32_t> usq = _grid.pos2sq( x , y );
+	sq._x = size_t( usq._x );
+	sq._y = size_t( usq._y );
+	return sq;
+}
+// 越界判断
+inline bool DistanceMap::in( double x , double y )
+{
+	return _grid.in( x, y);
+}
+
+inline bool DistanceMap::in( size_t i , size_t j )
+{
+	return _grid.in( uint32_t( i ), uint32_t( j ) );
+}
+
+// 各种存取接口：
+inline dm_cell_t&
+DistanceMap::operator()( size_t i , size_t j )
+{
+	return _grid( uint32_t(i) ,uint32_t(j) );
+}
+
+inline dm_cell_t&
+DistanceMap::operator()( grid_pos_t& pos )
+{
+	return _grid( uint32_t(pos._x) , uint32_t(pos._y) );
+}
+
+inline dm_cell_t&
+DistanceMap::operator()( double x , double y )
+{
+	return _grid( x , y );
+}
+
+inline dm_cell_t&
+DistanceMap::operator()( float_pos_t& pos )
+{
+	return _grid( pos._x , pos._y );
+}

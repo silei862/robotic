@@ -28,15 +28,23 @@
 
 namespace SlamLab
 {
+	// 类型别名：
+	typedef Point2D<double>		float_pos_t;	
+	typedef Point2D<size_t>		grid_pos_t;
+
 	typedef struct _dm_cell_t
 	{
-		double 			d;
-		Point2D<size_t>	ob_pos;
+		double 		_d;
+		grid_pos_t	_ob_pos;
 	} dm_cell_t;
+
+	// 距离网格数据类型：
+	typedef Grid< dm_cell_t >	dm_data_t;
+	typedef GridWin< dm_cell_t>	dm_win_t;
 
 	class DistanceMap
 	{
-			
+
 		public:
 			DistanceMap( );
 			DistanceMap( double width , double height , double cell_size , Point2D<double> org );
@@ -44,20 +52,41 @@ namespace SlamLab
 			DistanceMap( HIMMGrid& r_hg );
 			DistanceMap( const DistanceMap& dm );
 		public:
+			// 属性获取：
+			size_t cols();
+			size_t rows();
+			double width();
+			double height();
+			double cell_size();
+			float_pos_t origin();
+			// 直接获取距离网格引用
+			dm_data_t& get_dm_grid();
+			// 获取窗口
+			// 需要指定窗口原点全局坐标org , 高width、宽height
+			dm_win_t get_win( float_pos_t org , double width, double height );
+			// 指定窗口边长一半radius
+			dm_win_t get_win( float_pos_t org , double radius );
+			// 转换函数：
+			grid_pos_t pos2sq( float_pos_t pos );
+			grid_pos_t pos2sq( double x , double y );
+			// 越界判断：
+			bool in( double x , double y );
+			bool in( size_t i , size_t j );
 			// 存取接口：
-			inline dm_cell_t& operator()( size_t i , size_t j );
-			inline dm_cell_t& operator()( double x , double y );
-			inline dm_cell_t& operator()( Point2D<double> &pos );
+			dm_cell_t& operator()( size_t i , size_t j );
+			dm_cell_t& operator()( grid_pos_t& pos );
+			dm_cell_t& operator()( double x , double y );
+			dm_cell_t& operator()( float_pos_t& pos );
 
 		private:
 			// 初始化函数
-			inline void _int_map_data( );
+			inline void _init_map_data( );
 
 		private:
 			// 距离网格：
-			Grid< dm_cell_t > 		_grid;
+			dm_data_t	_grid;
 			// 距离最大值：
-			double 					_max_distance;
+			double 		_max_distance;
 	};
 }
 

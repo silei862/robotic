@@ -135,7 +135,7 @@ namespace SlamLab
 			// 直接指定原点坐标和高度、宽度，获取网格窗口
 			inline GridWin<TP>& get_win( double x, double y, double wd ,double ht )
 			{
-				_gridwin.set_rect( x,y,wd,ht );
+				_gridwin.set_rect( x-wd/2,y-ht/2,wd,ht );
 				return _gridwin;
 			}
 
