@@ -63,9 +63,9 @@ namespace SlamLab
 			dm_data_t& get_dm_grid();
 			// 获取窗口
 			// 需要指定窗口原点全局坐标org , 高width、宽height
-			dm_win_t get_win( float_pos_t org , double width, double height );
+			dm_win_t& get_win( float_pos_t org , double width, double height );
 			// 指定窗口边长一半radius
-			dm_win_t get_win( float_pos_t org , double radius );
+			dm_win_t& get_win( float_pos_t org , double radius );
 			// 转换函数：
 			grid_pos_t pos2sq( float_pos_t pos );
 			grid_pos_t pos2sq( double x , double y );

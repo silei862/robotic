@@ -18,6 +18,7 @@
 #ifndef _DMMBUILDER_H_
 #define _DMMBUILDER_H_
 
+#include <stdint.h>
 #include <list>
 #include <coord.h>
 #include <himmgrid.h>
@@ -53,18 +54,17 @@ namespace SlamLab
 		};
 
 		public:
-			DMMBuilder();
-			DMMBuilder( uvectors_t& r_uvec , HIMMGrid& r_cmap , DistanceMap& r_dmap );
+			DMMBuilder( int32_t max_val , int32_t th_low , int32_t th_high, double win_size );
 			virtual ~DMMBuilder(){ }
 
 		public:
 			// 外部接口：
 			void update();
 			// 操作符部分：
-			DMMBuilder& operator()( HIMMGrid& r_camp );
+			DMMBuilder& operator()( HIMMGrid& r_camp, double rx , double ry );
 			DistanceMap& operator>>( DistanceMap& r_dmap );
 			// 关联对象设置：
-			void set_update_vector( uvectors_t& r_uvec );
+			void set_update_vector( uvectors_t& r_uvecs );
 			void set_cmap( HIMMGrid& r_cmap );
 			void set_dmap( DistanceMap& r_dmap );
 
@@ -77,9 +77,9 @@ namespace SlamLab
 			void _insert_addunit( add_unit_t& r_au );
 			void _insert_clrunit( clr_unit_t& r_cu ); 
 			// 障碍格增加：
-			void _add_obstacle( float_pos_t& r_pos );
+			void _add_obstacle( double x , double y );
 			// 障碍格清除：
-			void _clear_obstacle( float_pos_t& r_pos);
+			void _clear_obstacle( double x , double y );
 			// 障碍增加更新计算：
 			void _addobstacle_update();
 			// 清除障碍更新计算：
@@ -87,14 +87,20 @@ namespace SlamLab
 			// 通过序号获取网格单元周围八个格子：
 			bool _to_around( grid_pos_t& r_pos , size_t idx );
 		private:
-			uvectors_t*		p_uvec;
+			uvectors_t*		p_uvecs;
 			HIMMGrid*		p_cmap;
 			DistanceMap*	p_dmap;
-			// 活动窗口大小：
-			size_t	_win_size;
 			// 更新队列：
 			std::list< add_unit_t >	_add_queue;
 			std::list< clr_unit_t > _clr_queue;
+			// 地图更新参数
+			int32_t _max_val;
+			int32_t _th_low;
+			int32_t _th_high;
+			// 活动窗口边长
+			double _win_size;
+			// 移动机器人中心坐标
+			float_pos_t _robot_pos;
 	};
 	DMMBuilder& operator>>( uvectors_t& r_uvec , DMMBuilder& r_dmmbd );
 }

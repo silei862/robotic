@@ -100,12 +100,12 @@ inline dm_data_t& DistanceMap::get_dm_grid()
 	return _grid;
 }
 // 获取距离网格的窗口
-inline dm_win_t DistanceMap::get_win( float_pos_t org , double width , double height )
+inline dm_win_t& DistanceMap::get_win( float_pos_t org , double width , double height )
 {
 	return _grid.get_win( org._x , org._y , width , height );
 }
 
-inline dm_win_t DistanceMap::get_win( float_pos_t org , double radius )
+inline dm_win_t& DistanceMap::get_win( float_pos_t org , double radius )
 {
 	return _grid.get_win( org._x , org._y , radius );
 }

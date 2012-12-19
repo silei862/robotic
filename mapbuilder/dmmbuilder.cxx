@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 #include <stdlib.h>
+#include <stdint.h>
 #include <cmath>
 #include <list>
 using namespace std;
@@ -37,33 +38,55 @@ SlamLab::operator>>( uvectors_t& r_uvec , DMMBuilder& r_dmmbd )
 }
 
 // ------------------------------- 更新器初始化 --------------------------------
-DMMBuilder::DMMBuilder()
-	:p_uvec( NULL ) , p_cmap( NULL ) , p_dmap( NULL )
+DMMBuilder::DMMBuilder( int32_t max_val , int32_t th_low , int32_t th_high, double win_size )
 {
-
+	_max_val = max_val;
+	_th_low = th_low;
+	_th_high = th_high;
+	_win_size = win_size;
+	_robot_pos = float_pos_t( 0.0 , 0.0 );
 }
 
-DMMBuilder::DMMBuilder( uvectors_t& r_uvec , HIMMGrid& r_cmap , DistanceMap& r_dmap )
-	:p_uvec( &r_uvec ) , p_cmap( &r_cmap ) , p_dmap( &r_dmap )
-{
-
-}
 // ------------------------------ 对外接口 ------------------------------------
 // 更新操作：
 void DMMBuilder::update()
 {
-	ASSERT( p_uvec && p_cmap && p_dmap );
-
+	ASSERT( p_uvecs && p_cmap && p_dmap );
+	for( size_t i =0 ; i< p_uvecs->size(); i ++ )
+	{
+		// 使用更新向量更新概率网格地图
+		update_vector_t& r_uvec = (*p_uvecs)[ i ];
+		int32_t val = int32_t((*p_cmap)( r_uvec.x , r_uvec.y ));
+		int32_t new_val = val + r_uvec.delta;
+		// 值限定并更新概率网格地图
+		if( new_val > _max_val ) 
+			new_val = _max_val;
+		if( new_val < 0 )
+			new_val = 0;
+		(*p_cmap)( r_uvec.x , r_uvec.y ) = uint8_t( new_val );
+		// 新计算值阈值判断：
+		if( new_val > _th_high && val <=_th_high )
+			_add_obstacle( r_uvec.x , r_uvec.y );
+		if( new_val < _th_low && val >=_th_low )
+			_clear_obstacle( r_uvec.x , r_uvec.y );
+	}
+	// 进行距离网格地图的更新计算
+	_clearobstacle_update();
+	_addobstacle_update();
+	// 清空更新向量：
+	p_uvecs->clear();
 }
 
 // 操作符重载：
-DMMBuilder& DMMBuilder::operator()( HIMMGrid& r_camp )
+inline DMMBuilder&
+DMMBuilder::operator()( HIMMGrid& r_camp, double rx , double ry )
 {
+	_robot_pos = float_pos_t( rx ,ry );
 	set_cmap( r_camp );
 	return *this;
 }
-
-DistanceMap& DMMBuilder::operator>>( DistanceMap& r_dmap )
+inline DistanceMap&
+DMMBuilder::operator>>( DistanceMap& r_dmap )
 {
 	set_dmap( r_dmap );
 	update();
@@ -72,9 +95,9 @@ DistanceMap& DMMBuilder::operator>>( DistanceMap& r_dmap )
 
 // 设置关联更新向量组
 inline void 
-DMMBuilder::set_update_vector( uvectors_t& r_uvec )
+DMMBuilder::set_update_vector( uvectors_t& r_uvecs )
 {
-	p_uvec = &r_uvec;
+	p_uvecs = &r_uvecs;
 }
 // 设置概率地图
 inline void 
@@ -147,9 +170,9 @@ void DMMBuilder::_insert_addunit( add_unit_t& r_au )
 }
 
 // 增加障碍格：
-void DMMBuilder::_add_obstacle( float_pos_t& r_pos )
+void DMMBuilder::_add_obstacle( double x , double y )
 {
-	grid_pos_t g_pos = p_dmap->pos2sq( r_pos );
+	grid_pos_t g_pos = p_dmap->pos2sq( x , y );
 	add_unit_t au;
 	// 设置更新级别
 	au._level = 0;
@@ -162,7 +185,7 @@ void DMMBuilder::_add_obstacle( float_pos_t& r_pos )
 	_insert_addunit( add_uinit_t& r_au );
 }
 // 清除障碍格：
-void DMMBuilder::_clear_obstacle( float_pos_t& r_pos )
+void DMMBuilder::_clear_obstacle( double x , double y )
 {
 	grid_pos_t g_pos = p_dmap->pos2sq( r_pos );
 	clr_unit_t cu;
@@ -179,6 +202,9 @@ bool DMMBuilder::_to_around( grid_pos_t& r_pos , size_t idx )
 	// 如果为负，则计算结果无效
 	if( i < 0 || j < 0 )
 		return false;
+	// 获取活动窗口：
+	dm_win_t& r_win = p_dmap->get_win( _robot_pos , _win_size/2 );
+////////////////// to do /////////////////////////////////////////////////////
 	// 如果不再网格地图范围内则结果无效
 	if( !p_dmap->in( size_t( i ), size_t( j ) ) )
 		return false;

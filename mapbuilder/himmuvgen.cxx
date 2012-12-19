@@ -100,8 +100,6 @@ void HIMMUVGen::generator()
 		// 计算障碍点的坐标
 		double ob_x = rg_x + rg_reading*cos( rb_yaw + rg_pose._rz );
 		double ob_y = rg_y + rg_reading*sin( rb_yaw + rg_pose._rz );
-		// 清空上次计算结果：
-		p_uvectors->clear();
 		// 进行更新计算：
 		if( rg_reading < _max_reading )
 			inc_vec_gen( ob_x , ob_y );

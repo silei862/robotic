@@ -31,14 +31,6 @@ namespace SlamLab
 		int32_t	delta;
 	} update_vector_t;
 
-	typedef struct _dm_update_cell_t
-	{
-		size_t				i;
-		size_t				j;
-		Point2D<double>	ob_pos;
-		double				val;
-	} dm_update_cell_t;
-
 	typedef std::vector< update_vector_t > uvectors_t;
 }
 
