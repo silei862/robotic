@@ -162,3 +162,32 @@ DistanceMap::operator()( float_pos_t& pos )
 {
 	return _grid( pos._x , pos._y );
 }
+
+// 障碍格清除，恢复初始状态
+void DistanceMap::clear_cell( size_t i , size_t j )
+{
+	dm_cell_t& r_dcell = (*this)( i , j );
+	r_dcell._d = _max_distance;
+	r_dcell._ob_pos = grid_pos_t( 0 , 0 );
+}
+
+void DistanceMap::clear_cell( double x , double y )
+{
+	dm_cell_t& r_dcell = (*this)( x ,y );
+	r_dcell._d = _max_distance;
+	r_dcell._ob_pos = grid_pos_t( 0 , 0 );
+}
+
+inline void
+DistanceMap::clear_cell( grid_pos_t& r_pos )
+{
+	this->clear_cell( r_pos._x , r_pos._y );
+}
+
+inline void
+DistanceMap::clear_cell( float_pos_t& r_pos )
+{
+	this->clear_cell( r_pos._x , r_pos._y );
+}
+
+

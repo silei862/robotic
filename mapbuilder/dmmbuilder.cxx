@@ -28,6 +28,14 @@ using namespace SlamLab;
 const int DMMBuilder::delta_i[DELTA_NUMS]={ -1,-1,-1, 0,0, 1,1,1 };
 const int DMMBuilder::delta_j[DELTA_NUMS]={ -1, 0, 1,-1,1,-1,0,1 };
 
+// 设置地图更新向量的操作符
+inline DMMBuilder&
+SlamLab::operator>>( uvectors_t& r_uvec , DMMBuilder& r_dmmbd )
+{
+	r_dmmbd.set_update_vector( r_uvec );
+	return r_dmmbd;
+}
+
 // ------------------------------- 更新器初始化 --------------------------------
 DMMBuilder::DMMBuilder()
 	:p_uvec( NULL ) , p_cmap( NULL ) , p_dmap( NULL )
@@ -41,35 +49,47 @@ DMMBuilder::DMMBuilder( uvectors_t& r_uvec , HIMMGrid& r_cmap , DistanceMap& r_d
 
 }
 // ------------------------------ 对外接口 ------------------------------------
+// 更新操作：
+void DMMBuilder::update()
+{
+	ASSERT( p_uvec && p_cmap && p_dmap );
+
+}
+
 // 操作符重载：
 DMMBuilder& DMMBuilder::operator()( HIMMGrid& r_camp )
 {
-	_set_cmap( r_camp );
+	set_cmap( r_camp );
 	return *this;
 }
 
-HIMMGrid& DMMBuilder::operator>>( HIMMGrid& r_cmap )
+DistanceMap& DMMBuilder::operator>>( DistanceMap& r_dmap )
 {
-
+	set_dmap( r_dmap );
+	update();
+	return *p_dmap;
 }
 
-// ------------------------------ 内部操作部分 ---------------------------------
 // 设置关联更新向量组
-void DMMBuilder::_set_update_vector( uvectors_t& r_uvec )
+inline void 
+DMMBuilder::set_update_vector( uvectors_t& r_uvec )
 {
 	p_uvec = &r_uvec;
 }
 // 设置概率地图
-void DMMBuilder::_set_cmap( HIMMGrid& r_cmap )
+inline void 
+DMMBuilder::set_cmap( HIMMGrid& r_cmap )
 {
 	p_cmap = &r_cmap;
 }
 // 设置距离地图
-void DMMBuilder::_set_dmap( DistanceMap& r_dmap )
+inline void
+DMMBuilder::set_dmap( DistanceMap& r_dmap )
 {
 	p_dmap = &r_dmap;
 }
 
+// ------------------------------ 内部操作部分 ---------------------------------
 // 计算更新单元更新值
 void DMMBuilder::_fill_unit_update_val( add_unit_t& r_au )
 {
@@ -182,11 +202,10 @@ void DMMBuilder::_addobstacle_update()
 		{
 			r_dc._ob_pos = r_au._obstacle_pos;
 			r_dc._d = r_au._update_val;
+			// 取更新单元中更新位置做基
+			grid_pos_t cell_pos = r_au._pos;
 			// 扩散更新
 			for( size_t idx = 0; idx < DELTA_NUMS ; idx++ )
-			{
-				// 取更新单元中更新位置做基
-				grid_pos_t cell_pos = r_au._pos;
 				// 坐标有效则可以进行扩散计算：
 				if( _to_around( cell_pos , idx ) )
 				{
@@ -202,9 +221,55 @@ void DMMBuilder::_addobstacle_update()
 					// 插入更新队列
 					_insert_addunit( au );
 				}
-			}
 		}	
 		// 将首元素删除
 		_add_queue.pop_front();
 	}
 }
+
+// 障碍格清除更新计算：
+void DMMBuilder::_clearobstacle_update()
+{
+	while( !_clr_queue.empty() )
+	{
+		clr_unit_t& r_cu = _clr_queue.front();
+		// 对单元格进行清除操作：
+		p_dmap->clear_cell( r_cu._pos );
+		// 以已清除单元格坐标为基础
+		grid_pos_t ar_pos = r_cu._pos;
+		// 进行扩散清除：
+		for( size_t i =0 ; i < DELTA_NUMS ; i++ )
+			if( _to_around( ar_pos , i ) )
+			{
+				dm_cell_t& r_dcell = ( *p_dmap )( ar_pos );
+				// 检查障碍关联性
+				if( r_dcell._ob_pos == r_cu._obstacle_pos )
+				{
+					// 相关则将加入清除更新队列
+					clr_unit_t cu;
+					cu._pos = ar_pos;
+					cu._obstacle_pos = r_cu._obstacle_pos;
+					_clr_queue.push_back( cu );
+				}
+				else // 否则将该格作为更新前沿插入更新队列：
+				{
+					add_unit_t au;
+					au._level = 0;
+					// 填充坐标：
+					au._obstacle_pos = r_dcell._ob_pos;
+					au._pos = ar_pos;
+					// 填充更新值及更新序值
+					_fill_unit_update_val( au );
+					_fill_unit_order_val( au );
+					_insert_addunit( au );
+				}
+			}
+		_clr_queue.pop_front();
+	}
+}
+
+
+
+
+
+

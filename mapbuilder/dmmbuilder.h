@@ -56,18 +56,19 @@ namespace SlamLab
 			DMMBuilder();
 			DMMBuilder( uvectors_t& r_uvec , HIMMGrid& r_cmap , DistanceMap& r_dmap );
 			virtual ~DMMBuilder(){ }
+
 		public:
 			// 外部接口：
+			void update();
 			// 操作符部分：
 			DMMBuilder& operator()( HIMMGrid& r_camp );
-			HIMMGrid& operator>>( HIMMGrid& r_cmap );
 			DistanceMap& operator>>( DistanceMap& r_dmap );
-	
-		private:
 			// 关联对象设置：
-			void _set_update_vector( uvectors_t& r_uvec );
-			void _set_cmap( HIMMGrid& r_cmap );
-			void _set_dmap( DistanceMap& r_dmap );
+			void set_update_vector( uvectors_t& r_uvec );
+			void set_cmap( HIMMGrid& r_cmap );
+			void set_dmap( DistanceMap& r_dmap );
+
+		private:
 			// 计算更新单元更新距离值：
 			void _fill_unit_update_val( add_unit_t& r_au );
 			// 障碍增加队列单元序值计算
@@ -75,9 +76,9 @@ namespace SlamLab
 			// 更新单元插入队列
 			void _insert_addunit( add_unit_t& r_au );
 			void _insert_clrunit( clr_unit_t& r_cu ); 
-			// 增加一个障碍格：
+			// 障碍格增加：
 			void _add_obstacle( float_pos_t& r_pos );
-			// 清除障碍格：
+			// 障碍格清除：
 			void _clear_obstacle( float_pos_t& r_pos);
 			// 障碍增加更新计算：
 			void _addobstacle_update();
@@ -95,7 +96,7 @@ namespace SlamLab
 			std::list< add_unit_t >	_add_queue;
 			std::list< clr_unit_t > _clr_queue;
 	};
-
+	DMMBuilder& operator>>( uvectors_t& r_uvec , DMMBuilder& r_dmmbd );
 }
 
 #endif //_DMMBUILDER_H_

@@ -72,11 +72,16 @@ namespace SlamLab
 			// 越界判断：
 			bool in( double x , double y );
 			bool in( size_t i , size_t j );
-			// 存取接口：
+			// 坐标存取接口：
 			dm_cell_t& operator()( size_t i , size_t j );
 			dm_cell_t& operator()( grid_pos_t& pos );
 			dm_cell_t& operator()( double x , double y );
 			dm_cell_t& operator()( float_pos_t& pos );
+			// 障碍格除：
+			void clear_cell( size_t i , size_t j );
+			void clear_cell( double x , double y );
+			void clear_cell( grid_pos_t& r_pos );
+			void clear_cell( float_pos_t& r_pos );
 
 		private:
 			// 初始化函数
