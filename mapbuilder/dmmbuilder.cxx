@@ -207,7 +207,7 @@ bool DMMBuilder::_to_around( grid_pos_t& r_pos , size_t idx )
 	if( i < 0 || j < 0 )
 		return false;
 	// 如果不在网格地图范围内则结果无效
-	if(!_in_win( i, j ) )
+	if(!_in_win( size_t(i), size_t(j) ) )
 		return false;
 	// 通过上面检测，结果有效
 	r_pos._x = size_t( i );
