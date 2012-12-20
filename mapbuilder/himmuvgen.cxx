@@ -22,6 +22,14 @@
 
 using namespace SlamLab;
 
+// ----------------------- 辅助操作符 -----------------------------
+HIMMUVGen& 
+SlamLab::operator>>( RangerBridge& r_ranger , HIMMUVGen& r_uvg )
+{
+	r_uvg.set_ranger( r_ranger );
+	return r_uvg;
+}
+
 // ----------------------- 常量 -----------------------------------
 const double HIMMUVGen::tpl_val[ TPL_NUM ] = { 0.5, 0.5, 0.5, \
 											   0.5, 1.0, 0.5, \
@@ -31,7 +39,8 @@ const double HIMMUVGen::def_min_reading = 0.0;
 
 // ----------------------- 对外接口 --------------------------------
 HIMMUVGen::HIMMUVGen( int inc , int dec , double max_reading )
-	:_inc( inc ) , _dec( dec ), _max_reading( max_reading )
+	:_inc( inc ) , _dec( dec ), _max_reading( max_reading ),
+	_tpl( DEF_TPL_SIZE ,DEF_TPL_SIZE )
 {
 	// 更新模板的初始化，装载预设定数组
 	for( int y = 0; y < DEF_TPL_SIZE; y++ )
@@ -44,14 +53,16 @@ HIMMUVGen::HIMMUVGen( int inc , int dec , double max_reading )
 	p_himmgrid = NULL;
 }
 
-HIMMUVGen& HIMMUVGen::operator()( Position2DBridge& r_pos2d, HIMMGrid& r_hg )
+HIMMUVGen& 
+HIMMUVGen::operator()( Position2DBridge& r_pos2d , HIMMGrid& r_hg )
 {
 	set_pos2d( r_pos2d );
 	set_himmgrid( r_hg );
 	return *this;
 }
 
-uvectors_t& HIMMUVGen::operator>>( uvectors_t& r_uv )
+uvectors_t& 
+HIMMUVGen::operator>>( uvectors_t& r_uv )
 {
 	set_uvector( r_uv );
 	ASSERT( p_pos2d && p_ranger && p_uvectors );
@@ -60,22 +71,26 @@ uvectors_t& HIMMUVGen::operator>>( uvectors_t& r_uv )
 }
 
 // ----------------------- 内部接口 -------------------------------
-void HIMMUVGen::set_pos2d( Position2DBridge& r_pos2d )
+inline void 
+HIMMUVGen::set_pos2d( Position2DBridge& r_pos2d )
 {
 	p_pos2d = &r_pos2d;
 }
 
-void HIMMUVGen::set_ranger( RangerBridge& r_ranger )
+inline void 
+HIMMUVGen::set_ranger( RangerBridge& r_ranger )
 {
 	p_ranger = &r_ranger;
 }
 
-void HIMMUVGen::set_uvector( uvectors_t& r_uvs )
+inline void 
+HIMMUVGen::set_uvector( uvectors_t& r_uvs )
 {
 	p_uvectors = &r_uvs;
 }
 
-void HIMMUVGen::set_himmgrid( HIMMGrid& r_hg )
+inline void 
+HIMMUVGen::set_himmgrid( HIMMGrid& r_hg )
 {
 	p_himmgrid = &r_hg;
 }
@@ -118,8 +133,8 @@ void HIMMUVGen::inc_vec_gen( double x , double y )
 			double cell_x = x + p_himmgrid->cell_size()*double(p);
 			double cell_y = y + p_himmgrid->cell_size()*double(q);
 			// 边界检查,在网格内则累加到变化量上
-			if( p_himmgrid->in( cx ,cy ) )
-				delta += _tpl[q][p]*(*p_himmgrid)( cell_x , cell_y );	
+			if( p_himmgrid->in( cell_x ,cell_y ) )
+				delta += _tpl[q+1][p+1]*(*p_himmgrid)( cell_x , cell_y );	
 		}
 	// 最后再加上更新值：
 	delta += _inc;
@@ -158,7 +173,7 @@ void HIMMUVGen::dec_vec_gen( double x0, double y0, double x1, double y1 )
 	for( size_t i = 0 ; i < step_num-1 ; i++ )
 	{
 		// 生成更新向量并加入更新向量组：
-		update_vector_t uv = { xx , yy , _dec };
+		update_vector_t uv = { xx , yy , -1*_dec };
 		p_uvectors->push_back( uv );
 		// 计算下一步的坐标
 		xx += step_x;

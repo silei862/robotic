@@ -47,14 +47,14 @@ namespace SlamLab
 					   double max_reading = def_max_reading );
 			~HIMMUVGen(){ }
 		public:
-			inline HIMMUVGen& operator()( Position2DBridge& r_pos2d , HIMMGrid& r_hg );
-			inline uvectors_t& operator>>( uvectors_t& r_uv );
+			HIMMUVGen& operator()( Position2DBridge& r_pos2d , HIMMGrid& r_hg );
+			uvectors_t& operator>>( uvectors_t& r_uv );
+			void set_pos2d( Position2DBridge& r_pos2d );
+			void set_ranger( RangerBridge& r_ranger );
+			void set_uvector( uvectors_t& r_uv );
+			void set_himmgrid( HIMMGrid& r_hg );
 		// ---------------------- 内部操作 --------------------------------
 		private:
-			inline void set_pos2d( Position2DBridge& r_pos2d );
-			inline void set_ranger( RangerBridge& r_ranger );
-			inline void set_uvector( uvectors_t& r_uv );
-			inline void set_himmgrid( HIMMGrid& r_hg );
 			inline void generator();
 			inline void inc_vec_gen( double x, double y );
 			inline void dec_vec_gen( double x0, double y0, double x1, double y1 );
@@ -71,6 +71,7 @@ namespace SlamLab
 			int 			_dec;
 			double			_max_reading;
 	};
+	HIMMUVGen& operator>>( RangerBridge& r_pos2d, HIMMUVGen& r_uvg );
 }
 	
 

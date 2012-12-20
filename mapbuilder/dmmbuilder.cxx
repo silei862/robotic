@@ -30,7 +30,7 @@ const int DMMBuilder::delta_i[DELTA_NUMS]={ -1,-1,-1, 0,0, 1,1,1 };
 const int DMMBuilder::delta_j[DELTA_NUMS]={ -1, 0, 1,-1,1,-1,0,1 };
 
 // 设置地图更新向量的操作符
-inline DMMBuilder&
+DMMBuilder&
 SlamLab::operator>>( uvectors_t& r_uvec , DMMBuilder& r_dmmbd )
 {
 	r_dmmbd.set_update_vector( r_uvec );
@@ -80,14 +80,14 @@ void DMMBuilder::update()
 }
 
 // 操作符重载：
-inline DMMBuilder&
+DMMBuilder&
 DMMBuilder::operator()( HIMMGrid& r_camp, double rx , double ry )
 {
 	_change_pos( rx , ry );
 	set_cmap( r_camp );
 	return *this;
 }
-inline DistanceMap&
+DistanceMap&
 DMMBuilder::operator>>( DistanceMap& r_dmap )
 {
 	set_dmap( r_dmap );

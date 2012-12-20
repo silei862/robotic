@@ -15,11 +15,15 @@
 *
 * =====================================================================================
 */
+#define DEBUG
 #include <stdlib.h>
 #include <iostream>
 #include <libplayerc++/playerc++.h>
 #include <playerwrapper.h>
 #include <himmbuilder.h>
+#include <dmmbuilder.h>
+#include <himmuvgen.h>
+#include <distancegrid.h>
 #include <bridge.h>
 #include <himmgrid.h>
 #include <misc.h>
@@ -59,29 +63,36 @@ int main( int argc, char* argv[] )
 	// 初始化传感器桥接器
 	RangerBridge ranger_bridge( &ranger );
 	Position2DBridge pos2d_bridge( &pos2d );
-	// 初始化地图构建器
-	HIMMBuilder map_builder;
-	map_builder.attach_position2d( pos2d_bridge );
+	cout<<"Before init map"<<endl;
+	// 初始化向量更新器及地图构建器
+	HIMMUVGen himm_uvgen( 3, 1 , 5.0 );
+	cout<<"After init uvgen!"<<endl;
+	uvectors_t update_vectors;
+	DMMBuilder dmm_builder( 16 , 6 , 10, 12.0 );
 	// 地图初始化
 	HIMMGrid map(20.0,20.0,0.2,Point2D<double>(-10.0,-10.0));
+	DistanceMap dmap( map );
 	map.set_all_val(0);
 	// 行走控制结构
 	SteerCtrl stc;
 	// 对环境预先扫描
-	/*for( int i=0;i<10;i++ )
+	for( int i=0;i<10;i++ )
 	{
 		robot.Read();
 		double rx=pos2d_bridge.get_x_pos();
 		double ry=pos2d_bridge.get_y_pos();
 		double yaw=pos2d_bridge.get_yaw();
 		pos2d_bridge.set_speed( 0.0,0.7 );
-	}*/
+	}
 	// 地图绘制
 	for(;;)
 	{
 		robot.Read();
+		double rx=pos2d_bridge.get_x_pos();
+		double ry=pos2d_bridge.get_y_pos();
 		// 绘制地图：
-		ranger_bridge>>map_builder>>map;
+		//ranger_bridge>>map_builder>>map;
+		ranger_bridge>>himm_uvgen( pos2d_bridge ,map )>>update_vectors>>dmm_builder( map , rx , ry )>>dmap;
 		// 在控制台显示地图：
 		cout<<map;
 

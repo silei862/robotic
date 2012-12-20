@@ -1,5 +1,5 @@
 #------------- 变量设置 ------------------------------
-SET ( LIB_SRC himmbuilder.cxx dmmbuilder.cxx )
+SET ( LIB_SRC himmbuilder.cxx dmmbuilder.cxx himmuvgen.cxx )
 SET ( LIB_NAME mapbuilder)
 
 INCLUDE_DIRECTORIES ( ${PROJECT_SOURCE_DIR}/gridmap 

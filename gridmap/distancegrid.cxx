@@ -60,53 +60,53 @@ DistanceMap::DistanceMap( const DistanceMap& dm )
 
 // --------------------- 对外接口----------------------
 // 获取距离网格各类基本属性
-inline size_t DistanceMap::cols()
+size_t DistanceMap::cols()
 {
 	return size_t(_grid.cell_cols());
 }
 
-inline size_t DistanceMap::rows()
+size_t DistanceMap::rows()
 {
 	return size_t(_grid.cell_rows());
 }
 
-inline double DistanceMap::width()
+double DistanceMap::width()
 {
 	return _grid.width();
 }
 
-inline double DistanceMap::height()
+double DistanceMap::height()
 {
 	return _grid.height();
 }
 
-inline double DistanceMap::cell_size()
+double DistanceMap::cell_size()
 {
 	return _grid.cell_size();
 }
 
-inline float_pos_t DistanceMap::origin()
+float_pos_t DistanceMap::origin()
 {
 	return _grid.get_origin();
 }
 
 // 获取距离网格引用
-inline dm_data_t& DistanceMap::get_dm_grid()
+dm_data_t& DistanceMap::get_dm_grid()
 {
 	return _grid;
 }
 // 获取距离网格的窗口
-inline dm_win_t& DistanceMap::get_win( float_pos_t org , double width , double height )
+dm_win_t& DistanceMap::get_win( float_pos_t org , double width , double height )
 {
 	return _grid.get_win( org._x , org._y , width , height );
 }
 
-inline dm_win_t& DistanceMap::get_win( float_pos_t org , double radius )
+dm_win_t& DistanceMap::get_win( float_pos_t org , double radius )
 {
 	return _grid.get_win( org._x , org._y , radius );
 }
 // 坐标转换为行列序号：
-inline grid_pos_t DistanceMap::pos2sq( float_pos_t pos )
+grid_pos_t DistanceMap::pos2sq( float_pos_t pos )
 {
 	grid_pos_t sq;
 	Point2D<uint32_t> usq = _grid.pos2sq( pos );
@@ -115,7 +115,7 @@ inline grid_pos_t DistanceMap::pos2sq( float_pos_t pos )
 	return sq;
 }
 
-inline grid_pos_t DistanceMap::pos2sq( double x , double y )
+grid_pos_t DistanceMap::pos2sq( double x , double y )
 {
 	grid_pos_t sq;
 	Point2D<uint32_t> usq = _grid.pos2sq( x , y );
@@ -124,36 +124,36 @@ inline grid_pos_t DistanceMap::pos2sq( double x , double y )
 	return sq;
 }
 // 越界判断
-inline bool DistanceMap::in( double x , double y )
+bool DistanceMap::in( double x , double y )
 {
 	return _grid.in( x, y);
 }
 
-inline bool DistanceMap::in( size_t i , size_t j )
+bool DistanceMap::in( size_t i , size_t j )
 {
 	return ( i < _grid.cell_cols() )&&( j < _grid.cell_rows() ); 
 }
 
 // 各种存取接口：
-inline dm_cell_t&
+dm_cell_t&
 DistanceMap::operator()( size_t i , size_t j )
 {
 	return _grid( uint32_t(i) ,uint32_t(j) );
 }
 
-inline dm_cell_t&
+dm_cell_t&
 DistanceMap::operator()( grid_pos_t& pos )
 {
 	return _grid( uint32_t(pos._x) , uint32_t(pos._y) );
 }
 
-inline dm_cell_t&
+dm_cell_t&
 DistanceMap::operator()( double x , double y )
 {
 	return _grid( x , y );
 }
 
-inline dm_cell_t&
+dm_cell_t&
 DistanceMap::operator()( float_pos_t& pos )
 {
 	return _grid( pos._x , pos._y );
@@ -174,13 +174,13 @@ void DistanceMap::clear_cell( double x , double y )
 	r_dcell._ob_pos = grid_pos_t( 0 , 0 );
 }
 
-inline void
+void
 DistanceMap::clear_cell( grid_pos_t& r_pos )
 {
 	this->clear_cell( r_pos._x , r_pos._y );
 }
 
-inline void
+void
 DistanceMap::clear_cell( float_pos_t& r_pos )
 {
 	this->clear_cell( r_pos._x , r_pos._y );
