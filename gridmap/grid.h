@@ -144,7 +144,7 @@ namespace SlamLab
 			{
 				_cell_size = grid._cell_size;
 				_origin = grid._origin;
-				_grid_data = grid._cell_size;
+				_grid_data = grid._grid_data;
 			}
 
 			TP& operator()( uint32_t x, uint32_t y ){ return _grid_data( x,y ); }

@@ -30,8 +30,6 @@ void DistanceMap::_init_map_data( )
 	_max_distance = _grid.width()*_grid.height();
 	dm_cell_t dc = { _max_distance , grid_pos_t( 0 , 0 ) };
 	_grid.set_all_val( dc );
-	_queue_add.clear();
-	_queue_clr.clear();
 }
 
 DistanceMap::DistanceMap( )
@@ -58,8 +56,6 @@ DistanceMap::DistanceMap( HIMMGrid& r_hg )
 DistanceMap::DistanceMap( const DistanceMap& dm )
 {
 	_grid = dm._grid;
-	_queue_add.clear();
-	_queue_clr.clear();
 }
 
 // --------------------- 对外接口----------------------
@@ -135,7 +131,7 @@ inline bool DistanceMap::in( double x , double y )
 
 inline bool DistanceMap::in( size_t i , size_t j )
 {
-	return _grid.in( uint32_t( i ), uint32_t( j ) );
+	return ( i < _grid.cell_cols() )&&( j < _grid.cell_rows() ); 
 }
 
 // 各种存取接口：

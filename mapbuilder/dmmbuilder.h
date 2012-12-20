@@ -86,10 +86,15 @@ namespace SlamLab
 			void _clearobstacle_update();
 			// 通过序号获取网格单元周围八个格子：
 			bool _to_around( grid_pos_t& r_pos , size_t idx );
+			// 窗口越界判别
+			bool _in_win( size_t i , size_t j );
+			// 窗口变更计算
+			void _change_pos( double rx , double ry );
 		private:
-			uvectors_t*		p_uvecs;
-			HIMMGrid*		p_cmap;
-			DistanceMap*	p_dmap;
+			uvectors_t*		p_uvecs;	// 跟新向量
+			HIMMGrid*		p_cmap;		// 概率网格地图
+			DistanceMap*	p_dmap;		// 距离网格地图
+
 			// 更新队列：
 			std::list< add_unit_t >	_add_queue;
 			std::list< clr_unit_t > _clr_queue;
@@ -100,7 +105,9 @@ namespace SlamLab
 			// 活动窗口边长
 			double _win_size;
 			// 移动机器人中心坐标
-			float_pos_t _robot_pos;
+			float_pos_t _robot_pos; // 当前坐标
+			float_pos_t _prev_pos;	// 上一个计算周期坐标
+			bool		_first_pos_change;
 	};
 	DMMBuilder& operator>>( uvectors_t& r_uvec , DMMBuilder& r_dmmbd );
 }

@@ -1,5 +1,5 @@
 #------------- 变量设置 ------------------------------
-SET ( LIB_SRC himmgrid.cxx mapfile.cxx )
+SET ( LIB_SRC himmgrid.cxx mapfile.cxx distancegrid.cxx )
 SET (LIB_NAME gridmap )
 
 INCLUDE_DIRECTORIES ( 

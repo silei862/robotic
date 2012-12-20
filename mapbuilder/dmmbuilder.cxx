@@ -45,6 +45,8 @@ DMMBuilder::DMMBuilder( int32_t max_val , int32_t th_low , int32_t th_high, doub
 	_th_high = th_high;
 	_win_size = win_size;
 	_robot_pos = float_pos_t( 0.0 , 0.0 );
+	_prev_pos = _robot_pos;
+	_first_pos_change = true;
 }
 
 // ------------------------------ 对外接口 ------------------------------------
@@ -81,7 +83,7 @@ void DMMBuilder::update()
 inline DMMBuilder&
 DMMBuilder::operator()( HIMMGrid& r_camp, double rx , double ry )
 {
-	_robot_pos = float_pos_t( rx ,ry );
+	_change_pos( rx , ry );
 	set_cmap( r_camp );
 	return *this;
 }
@@ -180,14 +182,14 @@ void DMMBuilder::_add_obstacle( double x , double y )
 	au._pos = g_pos;
 	au._obstacle_pos = g_pos;
 	// 更新值及序值计算：
-	_fill_unit_update_val( r_au );
-	_fill_unit_order_val( r_au );
-	_insert_addunit( add_uinit_t& r_au );
+	_fill_unit_update_val( au );
+	_fill_unit_order_val( au );
+	_insert_addunit( au );
 }
 // 清除障碍格：
 void DMMBuilder::_clear_obstacle( double x , double y )
 {
-	grid_pos_t g_pos = p_dmap->pos2sq( r_pos );
+	grid_pos_t g_pos = p_dmap->pos2sq( x , y );
 	clr_unit_t cu;
 	// 填充解构体：
 	cu._pos = g_pos;
@@ -202,11 +204,8 @@ bool DMMBuilder::_to_around( grid_pos_t& r_pos , size_t idx )
 	// 如果为负，则计算结果无效
 	if( i < 0 || j < 0 )
 		return false;
-	// 获取活动窗口：
-	dm_win_t& r_win = p_dmap->get_win( _robot_pos , _win_size/2 );
-////////////////// to do /////////////////////////////////////////////////////
 	// 如果不再网格地图范围内则结果无效
-	if( !p_dmap->in( size_t( i ), size_t( j ) ) )
+	if(!_in_win( i, j ) )
 		return false;
 	// 通过上面检测，结果有效
 	r_pos._x = size_t( i );
@@ -294,8 +293,105 @@ void DMMBuilder::_clearobstacle_update()
 	}
 }
 
+// 窗口越界判别：
+bool DMMBuilder::_in_win( size_t i , size_t j )
+{
+	dm_win_t& r_dmwin = p_dmap->get_win( _robot_pos , _win_size/2 );
+	size_t i0 = size_t( r_dmwin.get_x_base() );
+	size_t j0 = size_t( r_dmwin.get_y_base() );
+	size_t in = i0 + size_t( r_dmwin.cell_cols() );
+	size_t jn = j0 + size_t( r_dmwin.cell_rows() );
+	return ( i >= i0 )&&(i < in )&&( j >= j0 )&&( j < jn );
+}
 
+// 窗口变更计算
+void DMMBuilder::_change_pos( double rx , double ry )
+{
+	if( _first_pos_change )
+	{
+		// 首次初始化
+		_first_pos_change = false;
+		_robot_pos._x = rx;
+		_robot_pos._y = ry;
+		_prev_pos = _robot_pos;
+		return;
+	}
+	// 当前坐标更新
+	_robot_pos._x = rx;
+	_robot_pos._y = ry;
+	// 变化量计算：
+	double delta_x = _robot_pos._x - _prev_pos._x ;
+	double delta_y = _robot_pos._y - _prev_pos._y;
+	size_t delta_i = size_t( fabs( delta_x ) / p_dmap->cell_size() );
+	size_t delta_j = size_t( fabs( delta_y ) / p_dmap->cell_size() );
+	// 行列序号无变化无需进行变更计算：
+	if( delta_i ==0 && delta_j==0 )
+	{
+		_prev_pos = _robot_pos;
+		return;
+	}
+	// 获取活动窗口参数
+	dm_win_t& r_win = p_dmap->get_win( _robot_pos , _win_size/2 );
+	size_t i_base = size_t(r_win.get_x_base());
+	size_t j_base = size_t(r_win.get_y_base());
+	size_t cols = size_t(r_win.cell_cols());
+	size_t rows = size_t(r_win.cell_rows());
+	// 根据位置变化量选择不同的行列序号范围
+	size_t i_min , i_max , j_min , j_max;
+	size_t ii , jj;
+	if( delta_x <  0 )
+	{
+		i_min = delta_i + 1;
+		i_max = cols - 1;
+		ii = delta_i + 1;
+	}
+	else
+	{
+		i_min = 0;
+		i_max = cols - delta_i - 1;
+		ii = cols - delta_i -1;
+	}
+	if( delta_y < 0 )
+	{
+		j_min = delta_j + 1;
+		j_max = rows - 1;
+		jj = delta_j + 1;
+	}
+	else
+	{
+		j_min = 0;
+		j_max = rows - delta_j - 1;
+		jj = rows - delta_j - 1;
+	}
+	// 将窗口内的行列序号转换为全局行列序号：
+	i_min += i_base;
+	j_min += j_base;
+	i_max += i_base;
+	j_min += j_base;
+	ii += i_base;
+	jj += j_base;
+	// 将更新“前沿”插入更新队列
+	for( size_t i = i_min ; i<=i_max ; i++ )
+	{
+		add_unit_t au;
+		au._pos = grid_pos_t( i , jj );
+		au._obstacle_pos = (*p_dmap)( au._pos )._ob_pos;
+		au._level = 0 ;
+		_fill_unit_update_val( au );
+		_fill_unit_order_val( au );
+		_insert_addunit( au );
+	}
+	for( size_t j = j_min ; j<=j_max ; j++ )
+	{
+		add_unit_t au;
+		au._pos = grid_pos_t( ii , j );
+		au._obstacle_pos = (*p_dmap)( au._pos )._ob_pos;
+		au._level = 0;
+		_fill_unit_update_val( au );
+		_fill_unit_order_val( au );
+		_insert_addunit( au );
+	}
 
-
+}
 
 
