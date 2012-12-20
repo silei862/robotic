@@ -17,6 +17,7 @@
  */
 #include <stdlib.h>
 #include <stdint.h>
+#include <cmath>
 #include <distancegrid.h>
 
 using namespace std;
@@ -27,7 +28,9 @@ using namespace SlamLab;
 void DistanceMap::_init_map_data( )
 {
 	// 将所有网格单元均设为最大距离，且关联障碍格坐标为（0，0）
-	_max_distance = _grid.width()*_grid.height();
+	double w = _grid.width();
+	double h = _grid.height();
+	_max_distance = sqrt( w*w + h*h );
 	dm_cell_t dc = { _max_distance , grid_pos_t( 0 , 0 ) };
 	_grid.set_all_val( dc );
 }
@@ -186,4 +189,35 @@ DistanceMap::clear_cell( float_pos_t& r_pos )
 	this->clear_cell( r_pos._x , r_pos._y );
 }
 
+std::ostream& std::operator<<( std::ostream& r_os , SlamLab::DistanceMap& r_dm )
+{
+	double w = r_dm.width();
+	double h = r_dm.height();
+	double max_val = sqrt( w*w + h*h );
+	for( size_t j = r_dm.rows() ; j > 0 ; j-- )
+	{
+		for( size_t i = 0 ; i < r_dm.cols() ; i++ )
+		{
+					if( 0==i || (r_dm.cols()-1) == i )
+			{
+				r_os << "| ";
+				continue;
+			}
+			if( 1==j || r_dm.rows() == j )
+			{
+				r_os << "__";
+				continue;
+			}
+
+			double d = r_dm( i , j-1 )._d;
+			int pv = d/max_val*99;
+			if( pv < 10 )
+				r_os <<" "<<pv;
+			else
+				r_os <<pv;
+		}
+		r_os<<std::endl;
+	}
+	return r_os;
+}
 

@@ -94,7 +94,8 @@ int main( int argc, char* argv[] )
 		//ranger_bridge>>map_builder>>map;
 		ranger_bridge>>himm_uvgen( pos2d_bridge ,map )>>update_vectors>>dmm_builder( map , rx , ry )>>dmap;
 		// 在控制台显示地图：
-		cout<<map;
+		//cout<<map;
+		cout<<dmap;
 
 		// 调用防撞漫游控制计算函数：
 		if(simple_collision_avoid( ranger_bridge , stc ))

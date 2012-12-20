@@ -55,7 +55,7 @@ namespace SlamLab
 			// 属性获取：
 			size_t cols();
 			size_t rows();
-			double width();
+			double width();;
 			double height();
 			double cell_size();
 			float_pos_t origin();
@@ -93,6 +93,11 @@ namespace SlamLab
 			// 距离最大值：
 			double 		_max_distance;
 	};
+}
+
+namespace std
+{
+	std::ostream& operator<<( std::ostream& r_os , SlamLab::DistanceMap& r_dm );
 }
 
 #endif //_DISTANCEGRID_H

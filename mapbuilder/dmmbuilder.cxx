@@ -140,6 +140,8 @@ void DMMBuilder::_fill_unit_order_val( add_unit_t& r_au )
 // 更新单元插入队列：
 void DMMBuilder::_insert_addunit( add_unit_t& r_au )
 {
+	_add_queue.push_back( r_au );
+	return;
 	// 如果增加更新队列空，则放入后直接返回：
 	if( _add_queue.empty() )
 	{
@@ -204,7 +206,7 @@ bool DMMBuilder::_to_around( grid_pos_t& r_pos , size_t idx )
 	// 如果为负，则计算结果无效
 	if( i < 0 || j < 0 )
 		return false;
-	// 如果不再网格地图范围内则结果无效
+	// 如果不在网格地图范围内则结果无效
 	if(!_in_win( i, j ) )
 		return false;
 	// 通过上面检测，结果有效
@@ -301,7 +303,8 @@ bool DMMBuilder::_in_win( size_t i , size_t j )
 	size_t j0 = size_t( r_dmwin.get_y_base() );
 	size_t in = i0 + size_t( r_dmwin.cell_cols() );
 	size_t jn = j0 + size_t( r_dmwin.cell_rows() );
-	return ( i >= i0 )&&(i < in )&&( j >= j0 )&&( j < jn );
+	//return ( i >= i0 )&&(i < in )&&( j >= j0 )&&( j < jn );
+	return p_dmap->in( i , j );
 }
 
 // 窗口变更计算
