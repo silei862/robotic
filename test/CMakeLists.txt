@@ -37,6 +37,16 @@ TARGET_LINK_LIBRARIES( mapping mapbuilder
 					 		   ${PLAYERCXX_LIBRARIES}
 					 )
 
+############## Mapping #############
+ADD_EXECUTABLE( dmtest dmtest.cxx )
+TARGET_LINK_LIBRARIES( dmtest mapbuilder
+							   playerwrapper
+							   bridge
+							   gridmap
+							   planner
+							   misc
+					 		   ${PLAYERCXX_LIBRARIES}
+					 )
 
 ############## MapWin #############
 ADD_EXECUTABLE( mapwin mapwin.cxx )

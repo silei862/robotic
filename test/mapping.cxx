@@ -109,7 +109,8 @@ int main( int argc, char* argv[] )
 		{
 			pos_index ++;
 			if( pos_index >= pos_num )
-				break;
+				pos_index = 0;
+			
 			
 		}
 		else
@@ -117,7 +118,7 @@ int main( int argc, char* argv[] )
 
 	}
 	// 地图数据的保存
-	himm_savemap( map,"./20012.map"	);
+	//himm_savemap( map,"./20012.map"	);
 	return EXIT_SUCCESS;
 }
 

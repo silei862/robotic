@@ -140,8 +140,6 @@ void DMMBuilder::_fill_unit_order_val( add_unit_t& r_au )
 // 更新单元插入队列：
 void DMMBuilder::_insert_addunit( add_unit_t& r_au )
 {
-	_add_queue.push_back( r_au );
-	return;
 	// 如果增加更新队列空，则放入后直接返回：
 	if( _add_queue.empty() )
 	{
@@ -229,10 +227,11 @@ void DMMBuilder::_addobstacle_update()
 		{
 			r_dc._ob_pos = r_au._obstacle_pos;
 			r_dc._d = r_au._update_val;
-			// 取更新单元中更新位置做基
-			grid_pos_t cell_pos = r_au._pos;
 			// 扩散更新
 			for( size_t idx = 0; idx < DELTA_NUMS ; idx++ )
+			{
+				// 取更新单元中更新位置做基
+				grid_pos_t cell_pos = r_au._pos;
 				// 坐标有效则可以进行扩散计算：
 				if( _to_around( cell_pos , idx ) )
 				{
@@ -248,7 +247,8 @@ void DMMBuilder::_addobstacle_update()
 					// 插入更新队列
 					_insert_addunit( au );
 				}
-		}	
+			}
+		}
 		// 将首元素删除
 		_add_queue.pop_front();
 	}
@@ -262,10 +262,11 @@ void DMMBuilder::_clearobstacle_update()
 		clr_unit_t& r_cu = _clr_queue.front();
 		// 对单元格进行清除操作：
 		p_dmap->clear_cell( r_cu._pos );
-		// 以已清除单元格坐标为基础
-		grid_pos_t ar_pos = r_cu._pos;
 		// 进行扩散清除：
 		for( size_t i =0 ; i < DELTA_NUMS ; i++ )
+		{
+			// 以已清除单元格坐标为基础
+			grid_pos_t ar_pos = r_cu._pos;
 			if( _to_around( ar_pos , i ) )
 			{
 				dm_cell_t& r_dcell = ( *p_dmap )( ar_pos );
@@ -291,6 +292,7 @@ void DMMBuilder::_clearobstacle_update()
 					_insert_addunit( au );
 				}
 			}
+		}
 		_clr_queue.pop_front();
 	}
 }
@@ -303,8 +305,7 @@ bool DMMBuilder::_in_win( size_t i , size_t j )
 	size_t j0 = size_t( r_dmwin.get_y_base() );
 	size_t in = i0 + size_t( r_dmwin.cell_cols() );
 	size_t jn = j0 + size_t( r_dmwin.cell_rows() );
-	//return ( i >= i0 )&&(i < in )&&( j >= j0 )&&( j < jn );
-	return p_dmap->in( i , j );
+	return ( i >= i0 )&&(i < in )&&( j >= j0 )&&( j < jn );
 }
 
 // 窗口变更计算
