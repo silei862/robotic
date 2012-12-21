@@ -86,6 +86,7 @@ namespace SlamLab
 			void _clearobstacle_update();
 			// 通过序号获取网格单元周围八个格子：
 			bool _to_around( grid_pos_t& r_pos , size_t idx );
+			bool _to_around_all( grid_pos_t& r_pos , size_t idx );
 			// 窗口越界判别
 			bool _in_win( size_t i , size_t j );
 			// 窗口变更计算

@@ -157,6 +157,7 @@ void DMMBuilder::_insert_addunit( add_unit_t& r_au )
 			{
 				_add_queue.insert( it , r_au );
 				it = _add_queue.erase( it );
+				it --;
 			}
 			return;
 		}
@@ -196,7 +197,7 @@ void DMMBuilder::_clear_obstacle( double x , double y )
 	cu._obstacle_pos = g_pos;
 	_clr_queue.push_back( cu );
 }
-// 根据序号计算某个网格周边八个坐标
+// 根据序号计算某个网格周边八个坐标,以活动窗口为范围限定
 bool DMMBuilder::_to_around( grid_pos_t& r_pos , size_t idx )
 {
 	int i = int(r_pos._x) + delta_i[ idx ];
@@ -206,6 +207,22 @@ bool DMMBuilder::_to_around( grid_pos_t& r_pos , size_t idx )
 		return false;
 	// 如果不在网格地图范围内则结果无效
 	if(!_in_win( size_t(i), size_t(j) ) )
+		return false;
+	// 通过上面检测，结果有效
+	r_pos._x = size_t( i );
+	r_pos._y = size_t( j );
+	return true;
+}
+// 根据序号计算某网格周边八个邻格，以地图为限定范围
+bool DMMBuilder::_to_around_all( grid_pos_t& r_pos , size_t idx )
+{
+	int i = int(r_pos._x) + delta_i[ idx ];
+	int j = int(r_pos._y) + delta_j[ idx ];
+	// 如果为负，则计算结果无效
+	if( i < 0 || j < 0 )
+		return false;
+	// 如果不在网格地图范围内则结果无效
+	if(!p_dmap->in( size_t(i), size_t(j) ) )
 		return false;
 	// 通过上面检测，结果有效
 	r_pos._x = size_t( i );
@@ -267,7 +284,7 @@ void DMMBuilder::_clearobstacle_update()
 		{
 			// 以已清除单元格坐标为基础
 			grid_pos_t ar_pos = r_cu._pos;
-			if( _to_around( ar_pos , i ) )
+			if( _to_around_all( ar_pos , i ) )
 			{
 				dm_cell_t& r_dcell = ( *p_dmap )( ar_pos );
 				// 检查障碍关联性
@@ -289,12 +306,50 @@ void DMMBuilder::_clearobstacle_update()
 					// 填充更新值及更新序值
 					_fill_unit_update_val( au );
 					_fill_unit_order_val( au );
-					_insert_addunit( au );
+					_add_queue.push_front( au );
 				}
 			}
 		}
 		_clr_queue.pop_front();
 	}
+	/*
+	while( !_add_queue.empty() )
+	{
+		// 取出队列首元素引用：
+		add_unit_t& r_au = _add_queue.front();
+		// 获取将被距离网格单元：
+		dm_cell_t& r_dc = (*p_dmap)( r_au._pos );
+		// 若被更新的目标大于更新值，则更新并进行扩散更新
+		if( r_dc._d > r_au._update_val )
+		{
+			r_dc._ob_pos = r_au._obstacle_pos;
+			r_dc._d = r_au._update_val;
+			// 扩散更新
+			for( size_t idx = 0; idx < DELTA_NUMS ; idx++ )
+			{
+				// 取更新单元中更新位置做基
+				grid_pos_t cell_pos = r_au._pos;
+				// 坐标有效则可以进行扩散计算：
+				if( _to_around_all( cell_pos , idx ) )
+				{
+					// 根据cell_pos生成更新单元
+					add_unit_t au;
+					au._pos = cell_pos;
+					au._obstacle_pos = r_au._obstacle_pos;
+					// 更新层级加一
+					au._level = r_au._level+1;
+					// 填充更新值和序值
+					_fill_unit_update_val( au );
+					_fill_unit_order_val( au );
+					// 插入更新队列
+					_insert_addunit( au );
+				}
+			}
+		}
+		// 将首元素删除
+		_add_queue.pop_front();
+	}
+	*/
 }
 
 // 窗口越界判别：

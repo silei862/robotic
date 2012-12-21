@@ -68,7 +68,7 @@ int main( int argc, char* argv[] )
 	HIMMUVGen himm_uvgen( 3, 1 , 5.0 );
 	cout<<"After init uvgen!"<<endl;
 	uvectors_t update_vectors;
-	DMMBuilder dmm_builder( 16 , 6 , 10, 12.0 );
+	DMMBuilder dmm_builder( 16 , 6 , 10, 10.0 );
 	// 地图初始化
 	HIMMGrid map(20.0,20.0,0.2,Point2D<double>(-10.0,-10.0));
 	DistanceMap dmap( map );
