@@ -287,6 +287,7 @@ void DMMBuilder::_clearobstacle_update()
 			if( _to_around_all( ar_pos , i ) )
 			{
 				dm_cell_t& r_dcell = ( *p_dmap )( ar_pos );
+				std::cout<<"CQ="<<_clr_queue.size()<<" AQ="<<_add_queue.size()<<std::endl;
 				// 检查障碍关联性
 				if( r_dcell._ob_pos == r_cu._obstacle_pos )
 				{

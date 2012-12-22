@@ -45,6 +45,7 @@ std::ostream& std::operator<<( std::ostream& os , SlamLab::HIMMGrid& hg )
 	{
 		for( int x = 0; x<hg.cell_cols();x++ )
 		{
+			int val = hg( uint32_t(x) , uint32_t(y) );
 			if( 0==x || (hg.cell_cols()-1)==x )
 			{
 				os<<"| ";
@@ -55,10 +56,12 @@ std::ostream& std::operator<<( std::ostream& os , SlamLab::HIMMGrid& hg )
 				os<<"__";
 				continue;
 			}
-			if( 0==hg(uint32_t(x),uint32_t(y)) )
+			if( 0==val )
 				os<<" "<<" ";
+			else if( val < 10 )
+				os<<" "<<val;
 			else
-				os<<char(hg(uint32_t(x),uint32_t(y))+'A'-1)<<" ";
+				os<<val;
 		}
 		os<<std::endl;
 	}
