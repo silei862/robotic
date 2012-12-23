@@ -72,6 +72,8 @@ namespace SlamLab
 			// 越界判断：
 			bool in( double x , double y );
 			bool in( size_t i , size_t j );
+			// 最大值获取
+			double max_distance();
 			// 坐标存取接口：
 			dm_cell_t& operator()( size_t i , size_t j );
 			dm_cell_t& operator()( grid_pos_t& pos );

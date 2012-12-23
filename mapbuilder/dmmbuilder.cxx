@@ -149,15 +149,14 @@ void DMMBuilder::_insert_addunit( add_unit_t& r_au )
 	// 将更新单元放入合适位置：
 	list< add_unit_t >::iterator it= _add_queue.begin();
 	for( ;it != _add_queue.end();it++ )
-		// 如果序值相等说明更新的是同一个网格：
-		if( r_au._order_val == it->_order_val )
+		// 如果更新的是同一个网格
+		if( r_au._pos == it->_pos )
 		{
 			// 比较更新值，如果小于则替换，否则不插入单元
 			if( r_au._update_val < it->_update_val )
 			{
 				_add_queue.insert( it , r_au );
 				it = _add_queue.erase( it );
-				it --;
 			}
 			return;
 		}
@@ -169,7 +168,23 @@ void DMMBuilder::_insert_addunit( add_unit_t& r_au )
 		}
 	// 完成循环找不到合适的位置，则加入尾部
 	_add_queue.push_back( r_au );
-	return;
+}
+
+void DMMBuilder::_insert_clrunit( clr_unit_t& r_cu )
+{
+	// 如果清除队列空，则放入后直接返回：
+	if( _clr_queue.empty() )
+	{
+		_clr_queue.push_back( r_cu );
+		return;
+	}
+	list< clr_unit_t >::iterator it = _clr_queue.begin();
+	for( ; it!=_clr_queue.end(); it ++ )
+		// 如果清除单元已存在则直接返回
+		if( r_cu._pos == it->_pos )
+			return;
+	// 不存在，可添加
+	_clr_queue.push_back( r_cu );
 }
 
 // 增加障碍格：
@@ -274,6 +289,8 @@ void DMMBuilder::_addobstacle_update()
 // 障碍格清除更新计算：
 void DMMBuilder::_clearobstacle_update()
 {
+	//预更新面：
+	std::list< grid_pos_t > preupdate_queue;
 	while( !_clr_queue.empty() )
 	{
 		clr_unit_t& r_cu = _clr_queue.front();
@@ -287,7 +304,8 @@ void DMMBuilder::_clearobstacle_update()
 			if( _to_around_all( ar_pos , i ) )
 			{
 				dm_cell_t& r_dcell = ( *p_dmap )( ar_pos );
-				std::cout<<"CQ="<<_clr_queue.size()<<" AQ="<<_add_queue.size()<<std::endl;
+				if( r_dcell._d >= p_dmap->max_distance() )
+					continue;
 				// 检查障碍关联性
 				if( r_dcell._ob_pos == r_cu._obstacle_pos )
 				{
@@ -295,25 +313,39 @@ void DMMBuilder::_clearobstacle_update()
 					clr_unit_t cu;
 					cu._pos = ar_pos;
 					cu._obstacle_pos = r_cu._obstacle_pos;
-					_clr_queue.push_back( cu );
+					_insert_clrunit( cu );
 				}
-				else // 否则将该格作为更新前沿插入更新队列：
-				{
-					add_unit_t au;
-					au._level = 0;
-					// 填充坐标：
-					au._obstacle_pos = r_dcell._ob_pos;
-					au._pos = ar_pos;
-					// 填充更新值及更新序值
-					_fill_unit_update_val( au );
-					_fill_unit_order_val( au );
-					_add_queue.push_front( au );
-				}
+				else // 否则将该位置加入预更新队列
+					preupdate_queue.push_back( ar_pos );
 			}
 		}
 		_clr_queue.pop_front();
 	}
+	// 利用队列中的更新单元形成更新面
+	while( !preupdate_queue.empty() )
+	{
+		for( size_t idx = 0 ; idx < DELTA_NUMS ; idx++ )
+		{
+			grid_pos_t& pr_pos = preupdate_queue.front();
+			grid_pos_t ar_pos = pr_pos;
+			// 获取周边单元格
+			if( _to_around_all( ar_pos , idx ) )
+				// 若该邻格非关联格，则形成更新面
+				if( (*p_dmap)(ar_pos)._ob_pos != (*p_dmap)(pr_pos)._ob_pos )
+				{
+					add_unit_t au;
+					au._level = 0;
+					au._obstacle_pos = (*p_dmap)(pr_pos)._ob_pos;
+					au._pos = ar_pos;
+					_fill_unit_update_val( au );
+					_fill_unit_order_val( au );
+					_insert_addunit( au );	
+				}
+		}
+		preupdate_queue.pop_front();
+	}
 	/*
+	// 立即进行障碍增加刷新计算
 	while( !_add_queue.empty() )
 	{
 		// 取出队列首元素引用：

@@ -189,6 +189,11 @@ DistanceMap::clear_cell( float_pos_t& r_pos )
 	this->clear_cell( r_pos._x , r_pos._y );
 }
 
+double DistanceMap::max_distance()
+{
+	return _max_distance;
+}
+
 std::ostream& std::operator<<( std::ostream& r_os , SlamLab::DistanceMap& r_dm )
 {
 	double w = r_dm.width();
