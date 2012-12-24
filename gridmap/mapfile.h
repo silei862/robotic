@@ -20,25 +20,23 @@
 #define _MAPFILE_H_
 
 #include <stdint.h>
+#include <fstream>
+#include <mapconvi.h>
+#include <himmgrid.h>
+#include <distancegrid.h>
 
 namespace SlamLab
 {
-	enum _MAP_ID
-	{
- 		ID_HIMM_MAP = 0x55AA0001,
-	};
 
+	//int himm_savemap( HIMMGrid& r_hg ,const char* file );
+}
 
-
-	typedef struct _HIMMFileHeader 
-	{
-		uint32_t id;
-		uint32_t width;
-		uint32_t height;
-		double cell_size;
-	} HIMMFileHeader;
-
-	int himm_savemap( HIMMGrid& r_hg ,const char* file );
+namespace std
+{
+	ofstream& operator<<( ofstream& r_ofs , SlamLab::HIMMGrid& r_hg );
+	ofstream& operator<<( ofstream& r_ofs , SlamLab::DistanceMap& r_dm );
+	ifstream& operator>>( ifstream& r_ifs , SlamLab::HIMMGrid& r_hg );
+	ifstream& operator>>( ifstream& r_ifs , SlamLab::DistanceMap& r_dm );
 }
 
 #endif //_MAPFILE_H_

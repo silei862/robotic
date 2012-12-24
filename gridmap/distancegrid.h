@@ -48,10 +48,13 @@ namespace SlamLab
 		public:
 			DistanceMap( );
 			DistanceMap( double width , double height , double cell_size , Point2D<double> org );
+			DistanceMap( size_t cols , size_t rows , double cell_size , float_pos_t org );
 			// 使用一个概率网格地图的参数来生成距离网格地图:
 			DistanceMap( HIMMGrid& r_hg );
 			DistanceMap( const DistanceMap& dm );
 		public:
+			// 属性设置：
+			void set_attr( size_t cols , size_t rows , double cell_size , float_pos_t org );
 			// 属性获取：
 			size_t cols();
 			size_t rows();

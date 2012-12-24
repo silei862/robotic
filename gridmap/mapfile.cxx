@@ -23,23 +23,53 @@
 using namespace std;
 using namespace SlamLab;
 
-int SlamLab::himm_savemap( HIMMGrid& r_g , const char* file_name )
+// 保存地图：
+ofstream& std::operator<<( ofstream& r_ofs , HIMMGrid& r_hg )
 {
-	// 初始化文件头
-	HIMMFileHeader file_header;
-	file_header.id = ID_HIMM_MAP;
-	file_header.width = r_g.cell_cols();
-	file_header.height = r_g.cell_rows();
-	file_header.cell_size = r_g.cell_size();
-	// 打开文件
-	fstream mapfile;
-	mapfile.open( file_name , fstream::out | fstream::binary );
-	// 写入头部
-	mapfile.write( reinterpret_cast<char*>(&file_header), sizeof(HIMMFileHeader) );
-	// 写入数据
-	for( uint32_t j = 0; j < file_header.height; j++ )
-		for( uint32_t i = 0; i < file_header.width; i++ )
-			mapfile.put( char(r_g( i , j )) );
-	mapfile.close();
-	return 0;
+	HIMMGrid2Char hg2char;
+	hg2char.set_map( r_hg , 0 );
+	r_ofs.write( hg2char.data() , hg2char.size() );
+	return r_ofs;
+}
+
+ofstream& std::operator<<( ofstream& r_ofs , DistanceMap& r_dm )
+{
+	DistanceGrid2Char dm2char;
+	dm2char.set_map( r_dm , 0 );
+	r_ofs.write( dm2char.data() , dm2char.size() );
+	return r_ofs;
+}
+
+ifstream& std::operator>>( ifstream& r_ifs , HIMMGrid& r_hg )
+{
+	// 获取文件大小：
+	r_ifs.seekg( 0 , ios::end );
+	size_t len = r_ifs.tellg();
+	r_ifs.seekg( 0 , ios::beg );
+	// 读入数据：
+	char* p_data = new char[ len ];
+	r_ifs.read( p_data , len );
+	// 数据转换：
+	Char2HIMMGrid char2hg;
+	char2hg.set_data( p_data , r_hg );
+	// 清理
+	delete[] p_data;
+	return r_ifs;
+}
+
+ifstream& std::operator>>( ifstream& r_ifs , DistanceMap& r_dm )
+{
+	// 获取文件大小：
+	r_ifs.seekg( 0 , ios::end );
+	size_t len = r_ifs.tellg();
+	r_ifs.seekg( 0 , ios::beg );
+	// 读入数据：
+	char* p_data = new char[ len ];
+	r_ifs.read( p_data , len );
+	// 数据转换：
+	Char2DistanceGrid char2dm;
+	char2dm.set_data( p_data , r_dm );
+	// 清理
+	delete[] p_data;
+	return r_ifs;
 }

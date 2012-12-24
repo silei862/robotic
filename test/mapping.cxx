@@ -30,6 +30,7 @@
 #include <vfh.h>
 #include <localplanner.h>
 #include <mapfile.h>
+#include <mapconvi.h>
 
 using namespace SlamLab;
 using namespace std;
@@ -63,10 +64,8 @@ int main( int argc, char* argv[] )
 	// 初始化传感器桥接器
 	RangerBridge ranger_bridge( &ranger );
 	Position2DBridge pos2d_bridge( &pos2d );
-	cout<<"Before init map"<<endl;
 	// 初始化向量更新器及地图构建器
 	HIMMUVGen himm_uvgen( 3, 1 , 5.0 );
-	cout<<"After init uvgen!"<<endl;
 	uvectors_t update_vectors;
 	DMMBuilder dmm_builder( 16 , 6 , 10, 10.0 );
 	// 地图初始化
@@ -109,16 +108,41 @@ int main( int argc, char* argv[] )
 		{
 			pos_index ++;
 			if( pos_index >= pos_num )
-				pos_index = 0;
-			
+				//pos_index = 0;
+				break;
 			
 		}
 		else
 			pos2d_bridge.set_speed( stc._ahead_veloc , stc._angular_veloc );
 
 	}
+/* 
+	HIMMGrid2Char hg2char;
+	hg2char.set_map( map , 0 );
+	char* p_data = hg2char.data();
+	Char2HIMMGrid char2hg;
+	HIMMGrid gmap;
+	char2hg.set_data( p_data , gmap );
+	cout<< gmap;
+	*/
 	// 地图数据的保存
-	//himm_savemap( map,"./20012.map"	);
+	ofstream mapfile( "cvgrid.cmap" );
+	mapfile<<map;
+	mapfile.close();
+	ifstream imapfile( "cvgrid.cmap" );
+	HIMMGrid mp;
+	imapfile>>mp;
+	cout<<mp;
+	imapfile.close();
+	// 距离网格地图测试
+	ofstream dmapfile( "dmgrid.dmap" );
+	dmapfile<<dmap;
+	dmapfile.close();
+	ifstream idmapfile( "dmgrid.dmap" );
+	DistanceMap idmap;
+	idmapfile>>idmap;
+	cout<<idmap;
+	idmapfile.close();
 	return EXIT_SUCCESS;
 }
 

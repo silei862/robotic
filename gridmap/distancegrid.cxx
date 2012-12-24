@@ -46,6 +46,12 @@ DistanceMap::DistanceMap( double width , double height , double cell_size, Point
 	_init_map_data();
 }
 
+DistanceMap::DistanceMap( size_t cols , size_t rows , double cell_size , float_pos_t org )
+	:_grid( cols , rows , cell_size , org )
+{
+	_init_map_data();
+}
+
 // 参照概率网格地图参数，构建距离网格地图
 DistanceMap::DistanceMap( HIMMGrid& r_hg )
 	:_grid( r_hg.width(), 
@@ -62,6 +68,12 @@ DistanceMap::DistanceMap( const DistanceMap& dm )
 }
 
 // --------------------- 对外接口----------------------
+// 设置基本属性：
+void DistanceMap::set_attr( size_t cols , size_t rows , double cell_size , float_pos_t org )
+{
+	_grid.set_attr( cols , rows , cell_size , org );
+}
+
 // 获取距离网格各类基本属性
 size_t DistanceMap::cols()
 {

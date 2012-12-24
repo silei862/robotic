@@ -52,11 +52,17 @@ namespace SlamLab
 			// width,height：网格化地图的实际尺寸
 			// _cell_size：每个单元格的实际边长
 			// org：网格原点（0,0）在实际坐标中的位置
-			Grid( double width, double height, double _cell_size, Point2D<double> org )
-				:_cell_size(_cell_size),
+			Grid( double width, double height, double cell_size, Point2D<double> org )
+				:_cell_size(cell_size),
 				_grid_data(width/_cell_size+1,height/_cell_size+1),
 				_origin( org ), 
 				_gridwin(this){ }
+
+			Grid( size_t cols , size_t rows , double cell_size , Point2D<double> org )
+				:_cell_size( cell_size ),
+				_grid_data( uint32_t( cols ) , uint32_t( rows ) ),
+				_origin( org ) , 
+				_gridwin( this ){ }
 		
 			Grid( const Grid<TP>& grid )
 				:_cell_size( grid._cell_size ),
@@ -71,13 +77,21 @@ namespace SlamLab
 			// 设置获取原点
 			inline void set_origin( const Point2D<double>& pt ) { _origin = pt; }
 			inline const Point2D<double>& get_origin() const { return _origin; }
+			inline const Point2D<double>& origin() const { return _origin; }
 			// 获取、设置网格单元所代表的尺寸
 			inline double cell_size(){ return _cell_size; }
 			// 调整网格属性
-			void set_attr( double width, double height, double cell_size)
+			void set_attr( double width, double height, double cell_size, Point2D<double> org )
 			{ 
 				_cell_size = cell_size;
+				_origin = org;
 				_grid_data.resize( width/_cell_size+1,height/_cell_size+1 ); 
+			}
+			void set_attr( size_t cols , size_t rows , double cell_size, Point2D<double> org )
+			{
+				_cell_size = cell_size;
+				_origin = org;
+				_grid_data.resize( uint32_t(cols) , uint32_t(rows) );
 			}
 			// 获取网格长、宽：
 			inline double width(){ return _grid_data.col_size()*_cell_size; }
@@ -85,6 +99,8 @@ namespace SlamLab
 			// 获取网格横纵单元数：
 			inline uint32_t cell_cols(){ return _grid_data.col_size(); }
 			inline uint32_t cell_rows(){ return _grid_data.row_size(); }
+			inline uint32_t cols() { return _grid_data.col_size(); }
+			inline uint32_t rows() { return _grid_data.row_size(); }
 			// 获取网格坐标
 			inline Point2D<double> cell_coord( uint32_t x, uint32_t y ) const
 			{
@@ -146,8 +162,8 @@ namespace SlamLab
 				_origin = grid._origin;
 				_grid_data = grid._grid_data;
 			}
-
 			TP& operator()( uint32_t x, uint32_t y ){ return _grid_data( x,y ); }
+			TP& operator()( size_t i , size_t j ){ return _grid_data( uint32_t( i ) , uint32_t( j ) ); }
 			TP& operator()( double x, double y ){ return _grid_data( uint32_t((x-_origin._x)/_cell_size), uint32_t((y-_origin._y)/_cell_size)); }
 		
 		private:
