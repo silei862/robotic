@@ -44,7 +44,7 @@ namespace SlamLab
 				class alloc_fail{ };
 			public:
 				Map2Char( )
-					:_data( NULL ){ }
+					:_data( NULL ),_size(0){ }
 				virtual ~Map2Char()
 				{
 					if( _data )
@@ -67,11 +67,22 @@ namespace SlamLab
 					size_t head_size = sizeof( grid_head_t );	
 					size_t map_size = grid_head._cols*grid_head._rows;
 					size_t map_bytes = sizeof( DTP )*map_size;
-					_size = head_size + map_bytes;
-					_data = new char[ _size ];
-					if( !_data )
-						throw( alloc_fail() );
-
+					size_t size = head_size + map_bytes;
+					// 如果数据空间不符合
+					if( _size!=size )
+					{
+						// 删除旧数据
+						if( _data )
+							delete[] _data;
+						// 创建新数据
+						_data = new char[ size ];
+						if( !_data )
+						{
+							_size = 0 ;
+							throw( alloc_fail() );
+						}
+						_size = size;
+					}
 					// 写入头部数据：
 					char* p_head = reinterpret_cast< char* >( &grid_head );
 					for( size_t i = 0 ; i < head_size ; i++ )
