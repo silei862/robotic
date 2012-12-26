@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <netinet/in.h>
+#include <mapconvi.h>
 #include <mapserver.h>
 using namespace SlamLab;
 
@@ -121,6 +122,39 @@ void MapServer::ack_unknow( int fd )
 	p_msg[0] = ID_UNKNOW;
 	send_data( fd , p_msg , len );
 }
+
+void MapServer::ack_cvmap( int fd )
+{
+	HIMMGrid2Char hg2char;
+	hg2char.set_map( *p_cmap , ID_CVGRID_MAP );
+	send_data( fd , hg2char.data() , hg2char.size() );
+}
+
+void MapServer::ack_dsmap( int fd )
+{
+	DistanceGrid2Char dg2char;
+	dg2char.set_map( *p_dmap , ID_DSGRID_MAP );
+	send_data( fd , dg2char.data() , dg2char.size() );
+}
+
+void MapServer::send_data( int fd , char* pd , size_t num )
+{
+	size_t pos = 0;
+	// 发送完所有数据
+	for( ; ; )
+	{
+		size_t sd_num = send( fd , &pd[pos] , num - pos );
+		pos += sd_num;
+		if( pos >= num )
+			break;
+	}
+}
+
+void MapServer::recv_data( int fd , char* pd , size_t& num )
+{
+	
+}
+
 // ------------ 实现不同功能的线程函数 -----------------------
 // 主线程函数：
 void* MapServer::thread_main( void* p_self )
