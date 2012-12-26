@@ -3,6 +3,8 @@ SET ( LIB_SRC mapserver.cxx )
 SET ( LIB_NAME datatrans )
 
 INCLUDE_DIRECTORIES ( ${PROJECT_SOURCE_DIR}/gridmap 
+					  ${PROJECT_SOURCE_DIR}/misc
+					  ${PROJECT_SOURCE_DIR}/datatrans
 					)
 
 LINK_DIRECTORIES ( ${CMAKE_BINARY_DIR}/gridmap

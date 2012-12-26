@@ -66,14 +66,12 @@ namespace SlamLab
 			{
 				uint32_t grid_width = p_grid->cell_cols();
 				uint32_t grid_height = p_grid->cell_rows();
-				DBG_USER_INFO( "Int Size:",std::cout<<"W:"<<wd<<" H:"<<ht<<std::endl);
 				// 原点限制，防止窗口原点超出网格
 				x_base = ( x<grid_width )?x:0;
 				y_base = ( y<grid_height )?y:0;
 				// 边界限制，防止网格窗口超出网格
 				width = ( grid_width<x_base+wd )?( grid_width-x_base ):wd;
 				height = ( grid_height<y_base+ht )?( grid_height-y_base ):ht;
-				DBG_USER_INFO( "Int Size 2:",std::cout<<"W:"<<width<<" H:"<<height<<std::endl);
 			}
 
 			// 使用坐标设置窗口

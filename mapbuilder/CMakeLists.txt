@@ -1,3 +1,14 @@
+#------------- 窗口刷新配置选项 ----------------------
+OPTION ( UPDATE_WITHIN_WIN_SWICTH " Only refresh distance map in active window " )
+IF ( UPDATE_WITHIN_WIN_SWICTH )
+	ADD_DEFINITIONS( -DUPDATE_WITHIN_WIN )
+ENDIF( UPDATE_WITHIN_WIN_SWICTH )	
+
+OPTION ( IM_REFRESH_SWITCH " Refresh distance map after clear at once " )
+IF ( IM_REFRESH_SWITCH )
+	ADD_DEFINITIONS( -DIM_REFRESH )
+ENDIF( IM_REFRESH_SWITCH )	
+
 #------------- 变量设置 ------------------------------
 SET ( LIB_SRC himmbuilder.cxx dmmbuilder.cxx himmuvgen.cxx )
 SET ( LIB_NAME mapbuilder)

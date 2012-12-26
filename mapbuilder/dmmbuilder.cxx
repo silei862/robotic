@@ -265,7 +265,11 @@ void DMMBuilder::_addobstacle_update()
 				// 取更新单元中更新位置做基
 				grid_pos_t cell_pos = r_au._pos;
 				// 坐标有效则可以进行扩散计算：
+			#ifdef UPDATE_WITHIN_WIN
 				if( _to_around( cell_pos , idx ) )
+			#else	// UPDATE_WITHIN_WIN	
+				if( _to_around_all( cell_pos , idx ) )
+			#endif	// UPDATE_WITHIN_WIN
 				{
 					// 根据cell_pos生成更新单元
 					add_unit_t au;
@@ -344,7 +348,7 @@ void DMMBuilder::_clearobstacle_update()
 		}
 		preupdate_queue.pop_front();
 	}
-	/*
+#ifdef IM_REFRESH
 	// 立即进行障碍增加刷新计算
 	while( !_add_queue.empty() )
 	{
@@ -382,7 +386,7 @@ void DMMBuilder::_clearobstacle_update()
 		// 将首元素删除
 		_add_queue.pop_front();
 	}
-	*/
+#endif // IM_REFRESH
 }
 
 // 窗口越界判别：

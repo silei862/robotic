@@ -15,7 +15,6 @@
 *
 * =====================================================================================
 */
-#define DEBUG
 #include <stdlib.h>
 #include <iostream>
 #include <libplayerc++/playerc++.h>

@@ -20,7 +20,11 @@ OPTION ( INFORMATION_OUTPUT_SWITCH "Information output switch" )
 IF ( INFORMATION_OUTPUT_SWITCH )
 	ADD_DEFINITIONS( -DINFO_ON )
 ENDIF( INFORMATION_OUTPUT_SWITCH )	
-
+#------------- 调试开关 --------------------------------
+OPTION ( DEBUG_SWITCH "Information output switch" )
+IF ( DEBUG_SWITCH )
+	ADD_DEFINITIONS( -DDEBUG )
+ENDIF( DEBUG_SWITCH )	
 
 # 查找player库
 INCLUDE (FindPkgConfig)
@@ -41,7 +45,7 @@ ADD_SUBDIRECTORY ( gridmap )
 ADD_SUBDIRECTORY ( bridge )
 ADD_SUBDIRECTORY ( playerwrapper )
 ADD_SUBDIRECTORY ( mapbuilder )
-ADD_SUBDIRECTORY ( datatrans )
+#ADD_SUBDIRECTORY ( datatrans )
 ADD_SUBDIRECTORY ( vfh )
 ADD_SUBDIRECTORY ( planner )
 ADD_SUBDIRECTORY ( test ) 
