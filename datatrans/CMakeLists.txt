@@ -1,5 +1,5 @@
 #------------- 变量设置 ------------------------------
-SET ( LIB_SRC mapserver.cxx )
+SET ( LIB_SRC mapserver.cxx mapclient.cxx )
 SET ( LIB_NAME datatrans )
 
 INCLUDE_DIRECTORIES ( ${PROJECT_SOURCE_DIR}/gridmap 

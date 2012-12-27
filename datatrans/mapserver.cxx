@@ -21,10 +21,11 @@
 #include <netinet/in.h>
 #include <mapconvi.h>
 #include <mapserver.h>
+using namespace std;
 using namespace SlamLab;
 
-MapServer::MapServer( HIMMGrid& r_hg , DistanceMap& r_dmp, uint16_t port )
-	:p_cmap(&r_hg) , p_dmap( &r_dmp ) , _port( port )
+MapServer::MapServer( uint16_t port )
+	:_port( port )
 {
 	_exit_flag = false;
 }
@@ -38,7 +39,7 @@ void MapServer::init()
 	memset( (char*)&addr, sizeof(addr) , 0 );
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons( _port );
-	addr.sin_addr = ADDR_ANY;
+	addr.sin_addr.s_addr = INADDR_ANY;
 	int rc = bind( _sv_fd , ( sockaddr_t* )&addr, sizeof( addr ) );
 	if( rc < 0 )
 		throw( init_err() );
@@ -69,72 +70,93 @@ void MapServer::server_main()
 	char cmd_buf[CMDBUF_LEN];
 	memset( cmd_buf , CMDBUF_LEN , 0 );
 	int new_fd = accept( _sv_fd , (sockaddr_t*)&cl_addr , &cl_size );
+	cout<<__FILE__<<":"<<__LINE__<<" new_fd ="<<new_fd<<endl;
 	// 正确性检查：
 	if( new_fd < 0 )
 		return;
 	// 接受请求命令：
 	size_t pos = 0;
+	recv( new_fd , cmd_buf , CMDBUF_LEN , 0 );
+	/*
 	for( ; ; )
 	{
 		char* p_recv = &cmd_buf[ pos ];
-		size_t num_rd = recv( n_sfd , p_recv , CMDBUF_LEN - pos , 0 );
+		size_t num_rd = recv( new_fd , p_recv , CMDBUF_LEN - pos , 0 );
+		cout<<__FILE__<<":"<<__LINE__<<"num_rd="<<num_rd<<endl;
 		if( 0 == num_rd )
 			break;
 		pos += num_rd;
 		// 越界处理：
 		if( pos >= CMDBUF_LEN )
+		{
+			cout<<__FILE__<<":"<<__LINE__<<"pos="<<pos<<endl;
 			return;
-	}	
+		}
+	}	*/
 	// 解析命令：
 	request_t* p_rq = reinterpret_cast< request_t* >( cmd_buf );
+	cout<<__FILE__<<":"<<__LINE__<<"Map type:"<<p_rq->map_type<<endl;
 	/////+++++ 将来添加命令id解析+++++++
 	// 根据地图类型，发送不同数据：
 	switch( p_rq->map_type )
 	{
-		case ID_TEST_TYPE:
-			ack_test( new_fd );
+		case ID_TEST:
+			ack_msg( new_fd , "Test OK!" );
 			break;
 		case ID_CVGRID_MAP:
+			cout<<__FILE__<<":"<<__LINE__<<" Client request cvmap!"<<endl;
 			ack_cvmap( new_fd );
 			break;
 		case ID_DSGRID_MAP:
 			ack_dsmap( new_fd );
 			break;
 		default:
-			ack_unknow( new_fd );
+			ack_msg( new_fd , "Unknow operation!" );
 	}
 	close( new_fd );
 }
-
-// 测试回应
-void MapServer::ack_test( int fd )
+// 设置地图
+void MapServer::operator<<( HIMMGrid& r_hg )
 {
-	char* p_msg = "  Map server running!";
-	size_t len = strlen( p_msg );
-	p_msg[0] = ID_TEST_TYPE;
-	send_data( fd , p_msg , len );
+	p_cmap = &r_hg;
 }
 
-void MapServer::ack_unknow( int fd )
+void MapServer::operator<<( DistanceMap& r_dm )
 {
-	char* p_msg = "  Unknow request!";
-	size_t len = strlen( p_msg );
-	p_msg[0] = ID_UNKNOW;
-	send_data( fd , p_msg , len );
+	p_dmap = &r_dm;
+}
+
+// 回应信息：
+void MapServer::ack_msg( int fd , const string& msg )
+{
+	char* p_msg = new char[msg.size()+1];
+	p_msg[0] = ID_STRING;
+	memcpy( &p_msg[1] , msg.c_str() , msg.size() );
+	send_data( fd , p_msg , msg.size()+1 );
 }
 
 void MapServer::ack_cvmap( int fd )
 {
-	HIMMGrid2Char hg2char;
-	hg2char.set_map( *p_cmap , ID_CVGRID_MAP );
-	send_data( fd , hg2char.data() , hg2char.size() );
+	if( p_cmap )
+	{
+		HIMMGrid2Char hg2char;
+		hg2char.set_map( *p_cmap , ID_CVGRID_MAP );
+		send_data( fd , hg2char.data() , hg2char.size() );
+	}
+	else
+		ack_msg( fd , "Null cvmap pointer!" );
 }
 
 void MapServer::ack_dsmap( int fd )
 {
-	DistanceGrid2Char dg2char;
-	dg2char.set_map( *p_dmap , ID_DSGRID_MAP );
-	send_data( fd , dg2char.data() , dg2char.size() );
+	if( p_dmap )
+	{
+		DistanceGrid2Char dg2char;
+		dg2char.set_map( *p_dmap , ID_DSGRID_MAP );
+		send_data( fd , dg2char.data() , dg2char.size() );
+	}
+	else
+		ack_msg( fd , "Null dsmap pointer!" );
 }
 
 void MapServer::send_data( int fd , char* pd , size_t num )
@@ -143,16 +165,11 @@ void MapServer::send_data( int fd , char* pd , size_t num )
 	// 发送完所有数据
 	for( ; ; )
 	{
-		size_t sd_num = send( fd , &pd[pos] , num - pos );
+		size_t sd_num = send( fd , &pd[pos] , num - pos ,0);
 		pos += sd_num;
 		if( pos >= num )
 			break;
 	}
-}
-
-void MapServer::recv_data( int fd , char* pd , size_t& num )
-{
-	
 }
 
 // ------------ 实现不同功能的线程函数 -----------------------
@@ -161,6 +178,6 @@ void* MapServer::thread_main( void* p_self )
 {
 	MapServer* p_sv = reinterpret_cast< MapServer* >( p_self );
 	while( !p_sv->_exit_flag )
-		p_sv->_server_main( );
+		p_sv->server_main( );
 }
 	

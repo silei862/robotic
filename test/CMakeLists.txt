@@ -9,6 +9,7 @@ LINK_DIRECTORIES (
 					${CMAKE_BINARY_DIR}/vfh
 					${CMAKE_BINARY_DIR}/planner
 					${CMAKE_BINARY_DIR}/misc
+					${CMAKE_BINARY_DIR}/datatrans
 					${PLAYERCXX_LIBRARY_DIRS}
 				) 
 
@@ -21,6 +22,7 @@ INCLUDE_DIRECTORIES (
 						${PROJECT_SOURCE_DIR}/vfh
 						${PROJECT_SOURCE_DIR}/planner
 						${PROJECT_SOURCE_DIR}/misc
+						${PROJECT_SOURCE_DIR}/datatrans
 						${PLAYERCXX_INCLUDE_DIRS}
 						${OPENCV_INCLUDE_DIRS}
 					)
@@ -33,6 +35,14 @@ TARGET_LINK_LIBRARIES( mapping mapbuilder
 							   bridge
 							   gridmap
 							   planner
+							   misc
+							   datatrans
+					 		   ${PLAYERCXX_LIBRARIES}
+					 )
+############## showmap #############
+ADD_EXECUTABLE( showmap showmap.cxx )
+TARGET_LINK_LIBRARIES( showmap datatrans 
+							   gridmap
 							   misc
 					 		   ${PLAYERCXX_LIBRARIES}
 					 )

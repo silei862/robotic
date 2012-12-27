@@ -29,12 +29,12 @@ namespace SlamLab
 	// 传送数据，保存地图数据所用结构
 	struct grid_head_t
 	{
-		uint32_t	_id;
-		size_t		_cols;
-		size_t		_rows;
-		double		_cell_size;
-		double		_origin_x;
-		double		_origin_y;
+		uint8_t	_id;
+		size_t	_cols;
+		size_t	_rows;
+		double	_cell_size;
+		double	_origin_x;
+		double	_origin_y;
 	};
 // ----------------------------------- 地图转字节 --------------------------------------	
 	template< typename MTP , typename DTP >
@@ -52,7 +52,7 @@ namespace SlamLab
 				}
 
 			public:
-				inline void set_map( MTP& r_gm , uint32_t id )
+				inline void set_map( MTP& r_gm , uint8_t id )
 				{ 
 					// 填充地图头部数据:
 					grid_head_t grid_head;
@@ -174,11 +174,11 @@ namespace SlamLab
 					delete p_head;
 				}
 				// 获取地图id
-				uint32_t map_id(){ return _id; };
+				uint8_t map_id(){ return _id; };
 				// 获取地图引用：
 				MTP& map(){ return *p_map; }
 			private:
-				uint32_t	_id;
+				uint8_t		_id;
 				MTP*		p_map;
 		};
 	// 定义实际转换器：

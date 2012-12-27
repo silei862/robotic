@@ -29,6 +29,7 @@
 #include <vfh.h>
 #include <localplanner.h>
 #include <mapfile.h>
+#include <mapserver.h>
 #include <mapconvi.h>
 
 using namespace SlamLab;
@@ -71,6 +72,10 @@ int main( int argc, char* argv[] )
 	HIMMGrid map(20.0,20.0,0.2,Point2D<double>(-10.0,-10.0));
 	DistanceMap dmap( map );
 	map.set_all_val(0);
+	// 初始化地图服务器：
+	MapServer map_sv;
+	map_sv.init();
+	map_sv.start();
 	// 行走控制结构
 	SteerCtrl stc;
 	// 对环境预先扫描
@@ -93,8 +98,8 @@ int main( int argc, char* argv[] )
 		ranger_bridge>>himm_uvgen( pos2d_bridge ,map )>>update_vectors>>dmm_builder( map , rx , ry )>>dmap;
 		// 在控制台显示地图：
 		//cout<<map;
-		cout<<dmap;
-
+		//cout<<dmap;
+		map_sv<<map;
 		// 调用防撞漫游控制计算函数：
 		if(simple_collision_avoid( ranger_bridge , stc ))
 		{
@@ -107,14 +112,16 @@ int main( int argc, char* argv[] )
 		{
 			pos_index ++;
 			if( pos_index >= pos_num )
-				//pos_index = 0;
-				break;
+				pos_index = 0;
+				//break;
 			
 		}
 		else
 			pos2d_bridge.set_speed( stc._ahead_veloc , stc._angular_veloc );
 
 	}
+	//停止地图服务器
+	map_sv.stop();
 /* 
 	HIMMGrid2Char hg2char;
 	hg2char.set_map( map , 0 );
