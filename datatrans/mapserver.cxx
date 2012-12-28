@@ -70,32 +70,16 @@ void MapServer::server_main()
 	char cmd_buf[CMDBUF_LEN];
 	memset( cmd_buf , CMDBUF_LEN , 0 );
 	int new_fd = accept( _sv_fd , (sockaddr_t*)&cl_addr , &cl_size );
-	cout<<__FILE__<<":"<<__LINE__<<" new_fd ="<<new_fd<<endl;
+	INFO_VAR( new_fd );
 	// 正确性检查：
 	if( new_fd < 0 )
 		return;
 	// 接受请求命令：
 	size_t pos = 0;
 	recv( new_fd , cmd_buf , CMDBUF_LEN , 0 );
-	/*
-	for( ; ; )
-	{
-		char* p_recv = &cmd_buf[ pos ];
-		size_t num_rd = recv( new_fd , p_recv , CMDBUF_LEN - pos , 0 );
-		cout<<__FILE__<<":"<<__LINE__<<"num_rd="<<num_rd<<endl;
-		if( 0 == num_rd )
-			break;
-		pos += num_rd;
-		// 越界处理：
-		if( pos >= CMDBUF_LEN )
-		{
-			cout<<__FILE__<<":"<<__LINE__<<"pos="<<pos<<endl;
-			return;
-		}
-	}	*/
 	// 解析命令：
 	request_t* p_rq = reinterpret_cast< request_t* >( cmd_buf );
-	cout<<__FILE__<<":"<<__LINE__<<"Map type:"<<p_rq->map_type<<endl;
+	INFO_VAR( p_rq->map_type );
 	/////+++++ 将来添加命令id解析+++++++
 	// 根据地图类型，发送不同数据：
 	switch( p_rq->map_type )
@@ -104,10 +88,11 @@ void MapServer::server_main()
 			ack_msg( new_fd , "Test OK!" );
 			break;
 		case ID_CVGRID_MAP:
-			cout<<__FILE__<<":"<<__LINE__<<" Client request cvmap!"<<endl;
+			DBG_INFO( "Client request HIMMGrid map!");
 			ack_cvmap( new_fd );
 			break;
 		case ID_DSGRID_MAP:
+			DBG_INFO( "Client request Distance grid map!");
 			ack_dsmap( new_fd );
 			break;
 		default:

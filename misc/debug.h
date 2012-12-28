@@ -51,11 +51,11 @@
 #endif
 
 // 信息输出宏
-#define _DBG_PRINT( title,msg ) std::cout<<"["<<title<<"]"<<__FILE__<<":"<<__LINE__<<" "<<msg<<std::endl;
+#define _DBG_PRINT( title,msg ) std::cout<<"["<<title<<"]"<<__FILE__<<"["<<__LINE__<<"]:"<<msg<<std::endl;
 #define _DBG_USER_PRT(title,msg,user_func)	\
 		_DBG_PRINT( title,msg )				\
 		user_func;
-#define _DBG_VAR_PRINT( var ) std::cout<<__FILE__<<"["<<__LINE__<<"]:"<<std::string(_TO_STR(var))<<"="<<var<<std::endl;
+#define _DBG_VAR_PRINT( var ) std::cout<<"[Info]"<<__FILE__<<"["<<__LINE__<<"]:"<<std::string(_TO_STR(var))<<"="<<var<<std::endl;
 // 自由语句宏
 #define _DBG_STATEMENT( usr_func ) usr_func;
 

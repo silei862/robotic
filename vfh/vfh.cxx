@@ -109,7 +109,7 @@ PHBuilder& SlamLab::operator>>( HIMMGrid& r_map,PHBuilder& r_phb )
 void BinPHBuilder::build()
 {
 	ASSERT( p_polarhist && p_binhist );
-	ASSERT( p_polarhist->size() == p_binhist->size );
+	//ASSERT( p_polarhist->size() == p_binhist->size() );
 	init_threshold();
 	for( size_t i=0; i<p_polarhist->sector_num(); i++ )
 	{

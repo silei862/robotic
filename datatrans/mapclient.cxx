@@ -53,17 +53,18 @@ HIMMGrid& MapClient::operator>>( HIMMGrid& r_hg )
 	size_t num = RBUF_SIZE*2;
 	_recv_data( p_data , num );
 	// 检测返回数据
-	cout<<p_data[0]<<endl;
 	if( ID_CVGRID_MAP != p_data[0] )
 	{
 		_sv_retstr.copy( &p_data[1] , num -1 );
+		delete[] p_data;
 		throw( data_err() );
 	}
 	// 进行数据转换：
 	Char2HIMMGrid char2hg;
 	char2hg.set_data( p_data , r_hg );
-	// 删除临时数据：
-	delete p_data;
+	// 清理工作
+	delete[] p_data;
+	close( _fd );
 	return r_hg;
 }
 
@@ -84,13 +85,15 @@ DistanceMap& MapClient::operator>>( DistanceMap& r_dm )
 	if( ID_DSGRID_MAP != p_data[0] )
 	{
 		_sv_retstr.copy( &p_data[1] , num -1 );
-		//throw( data_err() );
+		delete[] p_data;
+		throw( data_err() );
 	}
 	// 进行数据转换：
 	Char2DistanceGrid char2dm;
 	char2dm.set_data( p_data , r_dm );
 	// 删除临时数据：
-	delete p_data;
+	delete[] p_data;
+	close( _fd );
 	return r_dm;
 }
 
@@ -111,7 +114,7 @@ void MapClient::_setup_link()
 	_sv_addr.sin_addr.s_addr = inet_addr( _ip_addr.c_str() );
 	// 尝试连接主机：
 	int rc = connect( _fd , (sockaddr*)&_sv_addr , sizeof( _sv_addr ) );	
-	if( rc < 0 )
+	if( rc != 0 )
 		throw( setuplink_err() );
 }
 
@@ -127,9 +130,11 @@ void MapClient::_send_data( char* p_data , size_t num )
 	}
 }
 
-void MapClient::_recv_data( char* p_data , size_t& num )
+void MapClient::_recv_data( char*& p_data , size_t& num )
 {
 	char* p_rbuf = new char[ RBUF_SIZE ];
+	if( !p_rbuf )
+		throw( alloc_fail() );
 	size_t pos = 0;
 	// 接受所有数据：
 	for( ; ; )
@@ -141,6 +146,11 @@ void MapClient::_recv_data( char* p_data , size_t& num )
 		{
 			// 扩展目标空间，并保存原有数据
 			char* p_tmp = new char[ num + RBUF_SIZE ];
+			if( !p_tmp )
+			{
+				delete[] p_rbuf;
+				throw( alloc_fail() );
+			}
 			memcpy( p_tmp , p_data , num );
 			num += RBUF_SIZE;
 			delete[] p_data;
@@ -150,4 +160,5 @@ void MapClient::_recv_data( char* p_data , size_t& num )
 		memcpy( &p_data[pos] , p_rbuf , num_rd );
 		pos += num_rd;
 	}
+	delete[] p_rbuf;
 }

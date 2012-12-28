@@ -35,12 +35,13 @@ namespace SlamLab
 	{
 		enum _CONST
 		{
-			RBUF_SIZE = 1024*16,
+			RBUF_SIZE = 1024*64,
 		};
 		typedef struct sockaddr_in sockaddrin_t;
 		public:
 			class setuplink_err{ };
 			class data_err{ };
+			class alloc_fail{ };
 		public:
 			MapClient( const std::string& addr = DEF_ADDR , uint16_t port = DEF_PORT );
 			virtual ~MapClient(){ }
@@ -55,7 +56,7 @@ namespace SlamLab
 			// 内部操作：
 			void _setup_link();
 			void _send_data( char* p_data , size_t num );
-			void _recv_data( char* p_data , size_t& num );
+			void _recv_data( char*& p_data , size_t& num );
 
 		private:
 			int				_fd;

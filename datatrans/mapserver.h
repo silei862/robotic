@@ -32,7 +32,7 @@ namespace SlamLab
 	enum _CONST
 	{
 		DEF_PORT 	= 8126,
-		BACK_LOG 	= 10,
+		BACK_LOG 	= 1,
 		CMDBUF_LEN	= 256,
 	};
 	// 命令类型标识

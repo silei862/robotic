@@ -32,11 +32,12 @@ int main()
 	{
 		try
 		{
-		//	map_cl( "127.0.0.1" )>>cvmap;
-		//	cout<<cvmap;
+			map_cl( "127.0.0.1" )>>cvmap;
+			cout<<cvmap;
+			sleep(1) ;
 			map_cl( "127.0.0.1" )>>dsmap;
 			cout<<dsmap;
-			sleep(2);
+			sleep(1);
 		}
 		catch( MapClient::setuplink_err &e )
 		{

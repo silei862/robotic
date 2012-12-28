@@ -100,6 +100,7 @@ int main( int argc, char* argv[] )
 		//cout<<map;
 		//cout<<dmap;
 		map_sv<<map;
+		map_sv<<dmap;
 		// 调用防撞漫游控制计算函数：
 		if(simple_collision_avoid( ranger_bridge , stc ))
 		{

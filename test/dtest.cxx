@@ -19,7 +19,6 @@
 #include <iostream>
 using namespace std;
 
-#define DEBUG
 #include <debug.h>
 
 int main()
