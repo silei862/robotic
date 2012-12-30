@@ -121,17 +121,6 @@ int main( int argc, char* argv[] )
 			pos2d_bridge.set_speed( stc._ahead_veloc , stc._angular_veloc );
 
 	}
-	//停止地图服务器
-	map_sv.stop();
-/* 
-	HIMMGrid2Char hg2char;
-	hg2char.set_map( map , 0 );
-	char* p_data = hg2char.data();
-	Char2HIMMGrid char2hg;
-	HIMMGrid gmap;
-	char2hg.set_data( p_data , gmap );
-	cout<< gmap;
-	*/
 	// 地图数据的保存
 	ofstream mapfile( "cvgrid.cmap" );
 	mapfile<<map;
@@ -150,6 +139,8 @@ int main( int argc, char* argv[] )
 	idmapfile>>idmap;
 	cout<<idmap;
 	idmapfile.close();
+	//停止地图服务器
+	map_sv.stop();
 	return EXIT_SUCCESS;
 }
 
