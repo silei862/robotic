@@ -39,6 +39,15 @@ TARGET_LINK_LIBRARIES( mapping mapbuilder
 							   datatrans
 					 		   ${PLAYERCXX_LIBRARIES}
 					 )
+
+############## PPlan #############
+ADD_EXECUTABLE( pplan pplan.cxx )
+TARGET_LINK_LIBRARIES( pplan   gridmap
+							   planner
+							   misc
+					 		   ${PLAYERCXX_LIBRARIES}
+					 )
+
 ############## showmap #############
 ADD_EXECUTABLE( showmap showmap.cxx )
 TARGET_LINK_LIBRARIES( showmap datatrans 

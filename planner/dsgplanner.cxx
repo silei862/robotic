@@ -39,6 +39,7 @@ DSGGuider::DSGGuider( DistanceMap& rdmap )
 	double hh = p_dmap->height();
 	double depth = sqrt( ww*ww + hh*hh )*mul_depth;
 	set_max_depth( depth );
+	_tolarance = 1;
 }
 
 void DSGGuider::set_weight( double wdp , double wv , double ww , double wd2d )
@@ -132,6 +133,8 @@ bool DSGGuider::get_controls( ctrlgroup_t& ctrls )
 	{
 		// 将该节点标记为false（移出open表)
 		node._in_open = false;
+		INFO_VAR( _node_list.size() );
+
 		// 检查是否到达目的：
 		if( _dest_achived( node ) )
 		{
