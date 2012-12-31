@@ -23,38 +23,111 @@ using namespace std;
 using namespace SlamLab;
 
 // ----------------- 对外接口 --------------------
-DSGGuider::DSGGuider()
+DSGGuider::DSGGuider( DistanceMap& rdmap )
 {
-
+	p_dmap = &rdmap;
+	// 设置默认参数：
+	set_weight( def_k_dp , def_k_v , def_k_w , def_k_d2d );
+	set_speed_interval( def_min_v , def_max_v );
+	set_angular_speed_interval( def_min_w , def_max_w );
+	set_delta_speed( def_delta_v , def_delta_w );
+	set_time_delta( def_delta_t );
+	set_safe_distance( def_safe_distance );
+	set_max_listlen( def_max_listlen );
+	// 设置默认深度：
+	double ww = p_dmap->width();
+	double hh = p_dmap->height();
+	double depth = sqrt( ww*ww + hh*hh )*mul_depth;
+	set_max_depth( depth );
 }
 
-void DSGGuider::init( state_t& cur, state_t& dest )
+void DSGGuider::set_weight( double wdp , double wv , double ww , double wd2d )
 {
-	_cur_state = cur;
-	// 根据传入状态生成首节点：
+	k_dp = wdp;
+	k_v = wv;
+	k_w = ww;
+	k_d2d = wd2d;
+}
+
+void DSGGuider::set_speed_interval( double min_v , double max_v )
+{
+	_max_v = max_v;
+	_min_v = min_v;
+}
+
+void DSGGuider::set_angular_speed_interval( double min_w , double max_w )
+{
+	_max_w = max_w;
+	_min_w = min_w;
+}
+
+void DSGGuider::set_delta_speed( double dv , double dw )
+{
+	_delta_v = dv;
+	_delta_w = dw;
+}
+
+void DSGGuider::set_time_delta( size_t dt )
+{
+	_delta_t = dt;
+}
+
+void DSGGuider::set_safe_distance( double sd )
+{
+	_safe_distance = sd;
+}
+
+void DSGGuider::set_distance_map( DistanceMap& rdmap )
+{
+	p_dmap = &rdmap;
+}
+
+void DSGGuider::set_max_depth( double depth )
+{
+	_max_depth = depth;
+}
+
+void DSGGuider::set_max_listlen( size_t maxlen )
+{
+	_max_listlen = maxlen;
+}
+
+void DSGGuider::set_start( double x ,double y , double th )
+{
+	// 初始化起始状态
+	_start_state._x = x;
+	_start_state._y = y;
+	_start_state._th = th;
+	_start_state._ctrl._tl = {0.0, 0.0 , 0.0};
+
+	// 生成首节点：
 	exnode_t first_node;
-	first_node._state = cur;
+	first_node._state = _cur_state;
 	first_node.p_parent = NULL;
+	first_node._in_open = true;
 	// 计算首节点的序值（启发函数值）
 	_fill_heuristic_val( first_node );
-	// 清空open、close表：
+	// 清空节点列表：
 	_open_list.clear();
-	_close_list.clear();
 	// 将首节点加入open表：
 	_open_list.push_back( first_node );
 }
 
-void DSGGuider::set_dest( state_t& state )
+void DSGGuider::set_destination( double x ,double y, double th )
 {
-	_dest_state = state;
+	_dest_state._x = x;
+	_dest_state._y = y;
+	_dest_state._th = th;
+	_dest_state._ctrl = { 0.0 , 0.0 , 0.0 };
 }
 // 获取可行控制向量组：
 bool DSGGuider::get_controls( ctrlgroup_t& ctrls )
 {
-	while( !_open_list.empty() )
+	exnode_t node;
+	while(_get_firstnode_in_open(node) )
 	{
-		// 从open表中取出一个节点
-		exnode_t node = _open_list.front();
+		// 将该节点标记为false（移出open表)
+		node._in_open = false;
 		// 检查是否到达目的：
 		if( _dest_achived( node ) )
 		{
@@ -65,19 +138,33 @@ bool DSGGuider::get_controls( ctrlgroup_t& ctrls )
 		nodevector_t childnodes;
 		_childnode_gen( node , childnodes );
 		for( size_t i = 0 ; i < childnodes.size() ; i ++ ) 
-			_insert_openlist( childnodes[i] );
-		// 将该节点插入close表并从open表中弹出
-		_insert_closelist( node );
-		_open_list.pop_front();
+			if( childnodes[i]._depth < _max_depth )
+				_insert_list( childnodes[i] );
+		if( _node_list.size() > _max_listlen )
+			_node_list.pop_back();
+
 	}
 	ctrls.clear();
+	return false;
+}
+
+bool DSGGuider::_get_firstnode_in_open( exnode_t& node )
+{
+	// 遍历表中所有节点，找出标志为open的点
+	nodelist_t::iterator it = _node_list.begin();
+	for( ;it != _node_list.end() ; it++ )
+		if( it->_in_open )
+		{
+			node = *it;
+			return true;
+		}
 	return false;
 }
 
 bool DSGGuider::_dest_achived( exnode_t& node )
 {
 	// 计算位置差
-	double err = _pos_distance( node._state._pos , _dest_state._pos );
+	double err = _pos_distance( node._state , _dest_state );
 	if( err <= _tolarance )
 		return true;
 	else
@@ -86,70 +173,88 @@ bool DSGGuider::_dest_achived( exnode_t& node )
 
 void DSGGuider::_childnode_gen( exnode_t& node , nodevector_t& chnodes )
 {
-	// 计算速度、角速度搜索空间中心：
-	int vc = node._state._speed._v / _delta_v;
-	int wc = node._state._speed._w / _delta_w;
-	// 计算边界：
-	int min_v_mul = vc - _v_delta_mul;
-	int min_w_mul = wc - _w_delta_mul;
-	int max_v_mul = vc + _v_delta_mul;
-	int max_w_mul = wc + _w_delta_mul;
-	// 边界限定：
-	if( min_v_mul < -1*_v_mul )
-		min_v_mul = -1*_v_mul;
-	if( min_w_mul < -1*_w_mul )
-		min_w_mul = -1*_w_mul;
-	if( max_v_mul > _v_mul )
-		max_v_mul = _v_mul;
-	if( max_w_mul > _w_mul )
-		max_w_mul = _w_mul;
-	// 清空节点向量组：
+	// 清除孩子节点组：
 	chnodes.clear();
-	// 在线速度、角速度空间展开节点：
-	for( int v_mul = min_v_mul ; v_mul <= max_v_mul ; v_mul++ )
-		for( int w_mul = min_w_mul ; w_mul <=max_w_mul ; w_mul++ )
+	// 尝试改变速度角速度，进行迁移计算：
+	for( int mul_v = -1; mul_v <=1 ; mul_v++ )
+		for( int mul_w = -1; mul_w <=1 ; mul_w++ )
 		{
+			// 在父节点控制状态下加以变化：
 			state_t state = node._state;
-			// 迁移线速度、角速度状态：
-			state._speed._v = v_mul*_delta_v;
-			state._speed._w = w_mul*_delta_w;
-			// 进行状态迁移计算：
+			state._ctrl._v += mul_v*_delta_v;
+			state._ctrl._w += mul_w*_delta_w;
+			// 速度值限定：
+			if( state._ctrl._v < _min_v || state._ctrl._v > _max_v )
+				continue;
+			if( state._ctrl._w < _min_w || state._ctrl._w > _max_w )
+				continue;
+			// 进行迁移计算：
 			_state_transfer( state );
-			// 可行性检查：
+			// 可行性检查
 			if( _state_applicable( state ) )
 			{
-				// 填充孩子节点成员：
-				exnode_t childnode;
-				childnode._state = state;
-				childnode.p_parent = &node;
-				_fill_heuristic_val( childnode );
-				// 放入节点组：
-				chnodes.push_back( childnode );
+				// 填充孩子节点：
+				exnode_t child_node;
+				child_node._state = state;
+				child_node.p_parent = &node;
+				child_node._in_open = true;
+				_fill_heuristic_val( child_node );
+				// 加入节点组：
+				chnodes.push_back( child_node );
 			}
 		}
 }
 
+// 状态迁移计算：
 void DSGGuider::_state_transfer( state_t& state )
 {
-	double v = state._speed._v;
-	double w = state._speed._w;
+	// 取出控制量
+	double v = state._ctrl._v;
+	double w = state._ctrl._w;
+	// 取出状态量
+	double x = state._x;
+	double y = state._y;
 	double th = state._th;
-	double delta_th = w*_step;
-	double delta_x = v/w*cos( th );
-	double delta_y = v/w*sin( th );
-	// 迁移状态空间：
+	// 位置变化量
+	double abs_dx = 0;
+	double abs_dy = 0;
+	double c_sz = p_dmap->cell_size();
+
+	int t_mul = 0;
+	do
+	{
+		t_mul++;
+		double t = _delta_t*t_mul/1000;
+		if( 0 == w )
+		{
+			x += v*t*cos(th);
+			y += v*t*sin(th);
+		}
+		else
+		{
+			x +=v*sin(w*t+th)/w;
+			y +=v*cos(w*t+th)/w;
+			th += w*t;
+		}
+		abs_dx = fabs( x - state._x );
+		abs_dy = fabs( y - state._y );
+	}while( abs_dx > c_sz || abs_dy > c_sz );
+
+	// 更新状态量,控制量：
+	state._x = x;
+	state._y = y;
 	state._th = th;
-	state._pos._x += delta_x;
-	state._pos._y += delta_y;
+	state._ctrl._tl = t_mul*_delta_t;
+	
 }
 
 bool DSGGuider::_state_applicable( state_t& state )
 {
 	// 超出地图？
-	if( !p_dmap->in( state._pos ) )
+	if( !p_dmap->in( state._x , state._y ) )
 		return false;
 	// 状态可行？
-	if( (*p_dmap)( state._pos )._d < _safe_distance )
+	if( (*p_dmap)( state._x , state._y )._d > _safe_distance )
 		return true;
 	else
 		return false;
@@ -162,15 +267,9 @@ void DSGGuider::_ctrlvectors_gen( exnode_t& node , ctrlgroup_t& ctrls )
 	exnode_t* p_node = &node;
 	while( p_node->p_parent )
 	{
-		// 根据当前节点和其父节点参数生成控制节点
-		control_t ctrl;
-		exnode_t* pp = p_node->p_parent;
-		// 以父节点速度作为控制量：
-		ctrl._ctl = pp->_state._speed;
-		// 以当前节点状态量作为目标坐标、姿态
-		ctrl._dest_pos = p_node->_state._pos;
-		ctrl._dest_th = p_node->_state._th;
-		// 加入反转控制向量组
+		// 根据当前节点生成控制向量
+		control_t ctrl = p_node->_state._ctrl;
+		// 保存到反转控制向量组：
 		revgrp.push_back( ctrl );
 		// 移动到父节点：
 		p_node = p_node->p_parent;
@@ -186,61 +285,49 @@ void DSGGuider::_ctrlvectors_gen( exnode_t& node , ctrlgroup_t& ctrls )
 void  DSGGuider::_fill_heuristic_val( exnode_t& node )
 {
 	double depth = 0;
-	double abs_dv = 0;
 	// 如果有父节点则以父节点状态值作为基础
 	if( node.p_parent )
 	{
 		exnode_t* pp = node.p_parent;
 		// 获取父节点路径深度：
 		depth = pp->_depth + _state_distance( pp->_state , node._state );
-		// 计算与父节点的速度差与状态差：
- 		abs_dv = fabs( pp->_state._speed._v - node._state._speed._v );
 	}
 	// 保存状态距离和
 	node._depth = depth;
 	// 获取启发值所需参数：
-	double abs_w = fabs( node._state._speed._w );
-	double d2d = _pos_distance(	node._state._pos , _dest_state._pos );
+	double abs_w = fabs( node._state._ctrl._w );
+	double abs_pv = ( _max_v - node._state._ctrl._v )/(_max_v - _min_v);
+	double d2d = _pos_distance(	node._state , _dest_state );
 	// 计算启发函数值：
-	node._heuritic = k_dp*depth + k_v*abs_dv + k_w*abs_w + k_d2d*d2d; 
+	node._heuritic = k_dp*depth + k_v*abs_pv + k_w*abs_w + k_d2d*d2d; 
 }
 
 double DSGGuider::_state_distance( state_t& st1 , state_t& st2 )
 {
-	double dx = st1._pos._x - st2._pos._x;
-	double dy = st1._pos._y - st2._pos._y;
+	double dx = st1._x - st2._y;
+	double dy = st1._y - st2._y;
 	double dth = st1._th - st2._th;
 	return sqrt( dx*dx + dy*dy + dth*dth );
 }
 
-double DSGGuider::_pos_distance( position_t& pos1 , position_t& pos2 )
+double DSGGuider::_pos_distance( state_t& st1 , state_t& st2 )
 {
-	double dx = pos1._x - pos2._x;
-	double dy = pos1._y - pos2._y;
+	double dx = st1._x - st2._x;
+	double dy = st1._y - st2._y;
 	return sqrt( dx*dx + dy*dy );
 }
 
 // ----------------- 节点插入表 -----------------------
-inline void DSGGuider::_insert_openlist( exnode_t& node )
+void DSGGuider::_insert_list( exnode_t& node )
 {
-	_insert_list( _open_list , node );
-}
-
-inline void DSGGuider::_insert_closelist( exnode_t& node )
-{
-	_insert_list( _close_list , node );
-}
-
-void DSGGuider::_insert_list( nodelist_t& list , exnode_t& node )
-{
-	nodelist_t::iterator it = list.begin();
+	nodelist_t::iterator it = _node_list.begin();
 	// 遍历整个列表找到合适位置并插入：
-	for( ; it != list.end(); it++ )
-		if( node._order_val < it->_order_val )
+	for( ; it != _node_list.end(); it++ )
+		if( node._heuritic < it->_heuritic )
 		{
-			list.insert( it , node );
+			_node_list.insert( it , node );
 			return;
 		}
 	// 无合适位置则添加到表尾：
-	list.push_back( node );
+	_open_list.push_back( node );
 }
