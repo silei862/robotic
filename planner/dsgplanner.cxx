@@ -98,19 +98,21 @@ void DSGGuider::set_start( double x ,double y , double th )
 	_start_state._x = x;
 	_start_state._y = y;
 	_start_state._th = th;
-	_start_state._ctrl._tl = {0.0, 0.0 , 0.0};
+	_start_state._ctrl._tl = 0;
+	_start_state._ctrl._v = 0.0;
+	_start_state._ctrl._w = 0.0;
 
 	// 生成首节点：
 	exnode_t first_node;
-	first_node._state = _cur_state;
+	first_node._state = _start_state;
 	first_node.p_parent = NULL;
 	first_node._in_open = true;
 	// 计算首节点的序值（启发函数值）
 	_fill_heuristic_val( first_node );
 	// 清空节点列表：
-	_open_list.clear();
+	_node_list.clear();
 	// 将首节点加入open表：
-	_open_list.push_back( first_node );
+	_node_list.push_back( first_node );
 }
 
 void DSGGuider::set_destination( double x ,double y, double th )
@@ -118,7 +120,9 @@ void DSGGuider::set_destination( double x ,double y, double th )
 	_dest_state._x = x;
 	_dest_state._y = y;
 	_dest_state._th = th;
-	_dest_state._ctrl = { 0.0 , 0.0 , 0.0 };
+	_dest_state._ctrl._tl = 0;
+	_dest_state._ctrl._v = 0.0;
+	_dest_state._ctrl._w = 0.0;
 }
 // 获取可行控制向量组：
 bool DSGGuider::get_controls( ctrlgroup_t& ctrls )
@@ -329,5 +333,5 @@ void DSGGuider::_insert_list( exnode_t& node )
 			return;
 		}
 	// 无合适位置则添加到表尾：
-	_open_list.push_back( node );
+	_node_list.push_back( node );
 }

@@ -57,7 +57,7 @@ void CVImageFile::operator>>( CVCanvas& r_canvas )
 {
 	Mat img = imread( _file_name );
 	if( img.empty() )
-		throw( Exception("Image Load failed!",EXID_FILE_ERROR,__FILE__,__LINE__) );
+		throw_info( " Image file load error! " );
 	r_canvas.canvas() = img.clone();
 }
 

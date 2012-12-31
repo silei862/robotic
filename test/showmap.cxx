@@ -17,6 +17,7 @@
  */
 #include <stdlib.h>
 #include <iostream>
+#include <debug.h>
 #include <himmgrid.h>
 #include <distancegrid.h>
 #include <mapclient.h>

@@ -60,7 +60,7 @@ void MapServer::start()
 void MapServer::stop()
 {
 	_exit_flag = true;
-	close( _sv_fd );
+	shutdown( _sv_fd , 2 );
 	void** p_ret_val;
 	// 等待线程结束：
 	pthread_join( _tid_main , p_ret_val );

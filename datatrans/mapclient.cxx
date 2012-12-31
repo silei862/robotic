@@ -41,6 +41,7 @@ MapClient& MapClient::operator()( const string& addr , uint16_t port )
 
 HIMMGrid& MapClient::operator>>( HIMMGrid& r_hg )
 {
+	DBG_INFO( "Before Setup link!" );
 	_setup_link();
 	// 发出获取概率地图数据请求：
 	request_t req;

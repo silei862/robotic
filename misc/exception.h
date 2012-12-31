@@ -20,6 +20,7 @@
 
 #include <string>
 #include <stdint.h>
+#include <iostream>
 
 #define INFO_UNKNOWN "unknown"
 
@@ -33,12 +34,6 @@
 
 namespace SlamLab
 {
-	enum _EXCEP_ID{
-			EXID_UNKNOWN 	= 0,
-			EXID_ASSERTFAIL = 1,
-			EXID_NULLPOINT	= 2,
-			EXID_FILE_ERROR	= 3,
-		};
 
 	class Exception
 	{
@@ -46,28 +41,32 @@ namespace SlamLab
 		/* -------------- Life Cycle --------------- */
 		public:
 			Exception()
-				:info( INFO_UNKNOWN ),id( EXID_UNKNOWN ),line( 0 ),file( INFO_UNKNOWN ) { }
+				:_info( INFO_UNKNOWN ),_line( 0 ),_file( INFO_UNKNOWN ) { }
 
-			Exception(const char* info,uint32_t id,const char* file,uint32_t line)
-				:info( info ),id( id ),file( file ),line( line ){ }
+			Exception(const char* info,const char* file,uint32_t line)
+				:_info( info ),_file( file ),_line( line ){ }
 
-			Exception(const std::string& info,uint32_t id,const std::string& file,uint32_t line)
-				:info( info ),id( id ),file( file ),line( line ){ }
+			Exception(const std::string& info,const std::string& file,uint32_t line)
+				:_info( info ),_file( file ),_line( line ){ }
 
 			Exception( const Exception& e )
-				:info( e.info ),id( e.id ),file( e.file ),line( e.line ){ }
+				:_info( e._info ),_file( e._file ),_line( e._line ){ }
 
 		/* ---------------- Acessor --------------- */
-			uint32_t get_id() { return id;}
-			const std::string& get_info() { return info;}
-			const std::string& get_file() { return file;}
-			uint32_t get_line() { return line;}
+			const std::string& info() { return _info;}
+			const std::string& file() { return _file;}
+			uint32_t line() { return _line;}
 		private:
-			std::string info;
-			uint32_t id;
-			uint32_t line;
-			std::string file;
+			std::string _info;
+			uint32_t _line;
+			std::string _file;
 	};
 }
 
+#define throw_info( info ) throw( Exception( info , __FILE__ ,__LINE__));
+// 异常信息输出函数：
+namespace std
+{
+	ostream& operator<<( ostream& r_os , SlamLab::Exception& r_ex );
+}
 #endif	//_EXCEPTION_H_
