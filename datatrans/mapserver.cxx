@@ -19,10 +19,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <netinet/in.h>
+//#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <unistd.h>
 #include <mapconvi.h>
 #include <mapserver.h>
 using namespace std;
 using namespace SlamLab;
+
 
 MapServer::MapServer( uint16_t port )
 	:_port( port )
@@ -166,4 +170,3 @@ void* MapServer::thread_main( void* p_self )
 	while( !p_sv->_exit_flag )
 		p_sv->server_main( );
 }
-	

@@ -19,6 +19,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 #include <mapconvi.h>
 #include <mapclient.h>
 

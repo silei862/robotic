@@ -21,6 +21,7 @@
 #include <himmgrid.h>
 #include <distancegrid.h>
 #include <mapclient.h>
+#include <unistd.h>
 using namespace std;
 using namespace SlamLab;
 
