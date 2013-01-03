@@ -65,19 +65,19 @@ namespace SlamLab
 		static const double def_k_dp = 10;
 		static const double def_k_v = 10;
 		static const double def_k_w = 10;
-		static const double def_k_d2d = 10;
+		static const double def_k_d2d = 80;
 		// 默认线速度、角速度区间：
 		static const double def_min_v = 0.1;
 		static const double def_max_v = 0.8;
-		static const double def_min_w = -0.5;
-		static const double def_max_w = 0.5;
+		static const double def_min_w = -0.7;
+		static const double def_max_w = 0.7;
 		// 默认线速度、角速度粒度：
 		static const double def_delta_v = 0.1;
 		static const double def_delta_w = 0.1;
 		// 默认时间粒度：
 		static const size_t def_delta_t = 100;
 		// 默认安全距离：
-		static const double def_safe_distance = 0.5;
+		static const double def_safe_distance = 1.0;
 		// 默认深度倍数：
 		static const int mul_depth = 3;
 		// 默认队列长度
@@ -104,7 +104,7 @@ namespace SlamLab
 		//------------------ 内部使用函数 -------------------
 		private:
 			// 获取_in_open=true的第一个结点
-			bool _get_firstnode_in_open(exnode_t& node);
+			exnode_t& _get_firstnode_in_open( bool& all_closed );
 			// 获取所有孩子节点：
 			void _childnode_gen( exnode_t& node , nodevector_t& chnodes );
 			// 状态迁移计算及可行性检查：

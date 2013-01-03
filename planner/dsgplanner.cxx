@@ -128,13 +128,18 @@ void DSGGuider::set_destination( double x ,double y, double th )
 // 获取可行控制向量组：
 bool DSGGuider::get_controls( ctrlgroup_t& ctrls )
 {
-	exnode_t node;
-	while(_get_firstnode_in_open(node) )
+	while( true )
 	{
+		bool all_closed ;
+		exnode_t& node = _get_firstnode_in_open( all_closed );
+		// 如果全部被展开过则结束：
+		if( all_closed )
+			break;
 		// 将该节点标记为false（移出open表)
 		node._in_open = false;
 		INFO_VAR( _node_list.size() );
-
+		INFO_VAR( node._state._x );
+		INFO_VAR( node._state._y );
 		// 检查是否到达目的：
 		if( _dest_achived( node ) )
 		{
@@ -155,17 +160,18 @@ bool DSGGuider::get_controls( ctrlgroup_t& ctrls )
 	return false;
 }
 
-bool DSGGuider::_get_firstnode_in_open( exnode_t& node )
+exnode_t& DSGGuider::_get_firstnode_in_open( bool& all_closed )
 {
 	// 遍历表中所有节点，找出标志为open的点
 	nodelist_t::iterator it = _node_list.begin();
 	for( ;it != _node_list.end() ; it++ )
 		if( it->_in_open )
 		{
-			node = *it;
-			return true;
+			all_closed = false;
+			return *it;
 		}
-	return false;
+	all_closed = true;
+	return *(_node_list.begin());
 }
 
 bool DSGGuider::_dest_achived( exnode_t& node )
@@ -183,8 +189,8 @@ void DSGGuider::_childnode_gen( exnode_t& node , nodevector_t& chnodes )
 	// 清除孩子节点组：
 	chnodes.clear();
 	// 尝试改变速度角速度，进行迁移计算：
-	for( int mul_v = -1; mul_v <=1 ; mul_v++ )
-		for( int mul_w = -1; mul_w <=1 ; mul_w++ )
+	for( int mul_v = -2; mul_v <=2 ; mul_v++ )
+		for( int mul_w = -2; mul_w <=2 ; mul_w++ )
 		{
 			// 在父节点控制状态下加以变化：
 			state_t state = node._state;
@@ -240,18 +246,18 @@ void DSGGuider::_state_transfer( state_t& state )
 		else
 		{
 			x +=v*sin(w*t+th)/w;
-			y +=v*cos(w*t+th)/w;
+			y -=v*cos(w*t+th)/w;
 			th += w*t;
 		}
 		abs_dx = fabs( x - state._x );
 		abs_dy = fabs( y - state._y );
-	}while( abs_dx > c_sz || abs_dy > c_sz );
+	}while( abs_dx < c_sz || abs_dy < c_sz );
 
 	// 更新状态量,控制量：
 	state._x = x;
 	state._y = y;
 	state._th = th;
-	state._ctrl._tl = t_mul*_delta_t;
+	state._ctrl._tl = _delta_t*t_mul;
 	
 }
 
