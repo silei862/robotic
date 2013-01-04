@@ -138,6 +138,17 @@ grid_pos_t DistanceMap::pos2sq( double x , double y )
 	sq._y = size_t( usq._y );
 	return sq;
 }
+// 行列序号转换为坐标：
+float_pos_t DistanceMap::cell_coord( size_t i , size_t j )
+{
+	return _grid.cell_coord( uint32_t(i) , uint32_t(j) );
+}
+
+float_pos_t DistanceMap::cell_coord( grid_pos_t& pos )
+{
+	return _grid.cell_coord( pos._x , pos._y );
+}
+
 // 越界判断
 bool DistanceMap::in( double x , double y )
 {

@@ -72,6 +72,8 @@ namespace SlamLab
 			// 转换函数：
 			grid_pos_t pos2sq( float_pos_t pos );
 			grid_pos_t pos2sq( double x , double y );
+			float_pos_t cell_coord( grid_pos_t& pos );
+			float_pos_t cell_coord( size_t i , size_t j );
 			// 越界判断：
 			bool in( double x , double y );
 			bool in( size_t i , size_t j );

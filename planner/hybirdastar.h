@@ -20,6 +20,7 @@
 #define _HYBIRDASTAR_H_
 
 #include <list>
+#include <vector>
 #include <distancegrid.h>
 
 namespace SlamLab
@@ -31,6 +32,20 @@ namespace SlamLab
 
 	class HybirdAstar
 	{
+	// ------------ 常量 --------------------
+		static const double def_h_depth = 10;
+		static const double def_h_theta = 10;
+		static const double def_h_todest = 10;
+		// 运动限制参数：
+		static const double def_delta_v = 0.1;
+		static const double def_max_delta_v = 0.3;
+		static const double def_delta_w = 0.1;
+		static const double def_max_delta_w = 0.3;
+		static const double def_min_v = 0.1;
+		static const double def_max_v = 1.0;
+		static const double def_min_w = -0.5;
+		static const double def_max_w = 0.5;
+
 	// ------------ 类型 -----------------
 		// 混合状态：
 		struct mixstate_t
@@ -39,18 +54,19 @@ namespace SlamLab
 			double		_x;
 			double		_y;
 			double		_th;
+			double		_v;
+			double		_w;
 		};
 
 		// 展开节点：
 		struct hanode_t
 		{
 			mixstate_t	_state;
-			double		_v;
-			double		_w;
 			double		_heuristic;
 			double		_depth;
 			hanode_t*	p_parent;
 		};
+		typedef std::vector< hanode_t* > nodevector_t;
 		// 节点表：
 		typedef std::list<hanode_t*> nodelist_t;
 
@@ -62,8 +78,11 @@ namespace SlamLab
 			~HybirdAstar();
 		// -----------------  用户接口 ---------------
 			// 设置起始状态、终点： 
-			void set_start( double x , double y , double th, double v = 0  , double w = 0 );
+			void set_start( double x , double y , double th , double v=0 , double w=0 );
 			void set_destination( double x , double y );
+			// 参数设置：
+			void set_heuristic_para( double k_depth , double k_angular , double k_todest );
+
 			// 获取路径:
 			bool get_path( path_t& r_path );
 
@@ -71,12 +90,19 @@ namespace SlamLab
 		private:
 			// 节点管理：
 			hanode_t* create_node();
-			hanode_t* create_node( mixstate_t& r_state, double v = 0 , double w = 0  );
+			hanode_t* create_node( mixstate_t& r_state, hanode_t* p_parent );
 			void destroy_node( hanode_t* p_node );
-			// 计算启发函数：
+			// --------------- 节点展开 -------------------
+			void _node_to_path( hanode_t* p_node , path_t& r_path );
+			void _expand_node( hanode_t* p_node , nodevector_t& nodes );
+			void _transfer_state( mixstate_t& r_state , double v , double w);
+			bool _in_neighbor( grid_pos_t& r_centerpos , grid_pos_t& r_pos );
+			// --------------- 计算启发函数 -----------------------
 			void _fill_heuristic( hanode_t* p_node );
 			double _state_distance( mixstate_t& r_st1, mixstate_t& r_st2 );
-			double _pos_distance( float_pos_t& r_pos1 , float_pos_t& r_pos2 ); 
+			double _pos_distance( float_pos_t& r_pos1 , float_pos_t& r_pos2 );
+			double _to_destangular( mixstate_t& r_state );
+			double _to_destdistance( mixstate_t& r_state );
 			// 节点列表操作：
 			void _insert_openlist( hanode_t* p_node );
 			void _insert_closelist( hanode_t* p_node );
@@ -92,6 +118,21 @@ namespace SlamLab
 			// 节点列表
 			nodelist_t		_openlist;
 			nodelist_t		_closelist;
+			// 启发函数系数：
+			double h_depth;
+			double h_theta;
+			double h_todest;
+			// 运动限制参数：
+			double _delta_v;
+			double _max_delta_v;
+			double _delta_w;
+			double _max_delta_w;
+			double _min_v;
+			double _max_v;
+			double _min_w;
+			double _max_w;
+			// 状态迁移步长：
+			double _step_len;
 	};
 }
 
