@@ -81,8 +81,12 @@ namespace SlamLab
 			void set_start( double x , double y , double th , double v=0 , double w=0 );
 			void set_destination( double x , double y );
 			// 参数设置：
-			void set_heuristic_para( double k_depth , double k_angular , double k_todest );
-
+			void set_heuristic_para( double k_depth , double k_theta , double k_todest );
+			void set_hspeed_delta( double delta_v , double max_delta_v );
+			void set_hspeed_interval( double min_v , double max_v );
+			void set_aspeed_delta( double delta_w , double max_delta_w );
+			void set_aspeed_interval( double min_w , double max_w );
+			void set_safe_distance( double safe_distance );
 			// 获取路径:
 			bool get_path( path_t& r_path );
 

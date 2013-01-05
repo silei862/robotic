@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 #include <stdlib.h>
+#include <string.h>
 #include <cmath>
 #include <debug.h>
 #include <exception.h>
@@ -29,6 +30,12 @@ HybirdAstar::HybirdAstar( DistanceMap& r_dmap, double safe_d )
 	_safe_distance = safe_d;
 	// 计算状态迁移步长：
 	_step_len = 1.1*p_dmap->cell_size(); 
+	// 设置默认参数：
+	set_heuristic_para( def_h_depth , def_h_theta , def_h_todest );
+	set_hspeed_delta( def_delta_v , def_max_delta_v );
+	set_hspeed_interval( def_min_v , def_max_v );
+	set_aspeed_delta( def_delta_w , def_max_delta_w );
+	set_aspeed_interval( def_min_w , def_max_w );
 }
 
 HybirdAstar::~HybirdAstar()
@@ -42,6 +49,7 @@ HybirdAstar::~HybirdAstar()
 	for( ; it != _closelist.end() ; it++ )
 		destroy_node( *it );
 }
+
 
 // ------------------ 对外接口 --------------------------------
 // 设置起始状态
@@ -97,14 +105,54 @@ HybirdAstar::set_destination( double x , double y )
 	if( !p_dmap->in( x , y ) )
 		throw_info( " out of map! " );
 	
-	if( (*p_dmap)( x, y ) < _safe_distance )
+	if( (*p_dmap)( x, y )._d < _safe_distance )
 		throw_info( " dangerous destination " );
 
 	_dest_cell = p_dmap->pos2sq( x , y );
 }
 
 // ------------------ 参数设置 --------------------------------
+inline void
+HybirdAstar::set_safe_distance( double safe_distance )
+{
+	_safe_distance = safe_distance;
+}
 
+inline void
+HybirdAstar::set_heuristic_para( double k_depth , double k_theta , double k_todest)
+{
+	h_depth = k_depth;
+	h_theta = k_theta;
+	h_todest = k_todest;
+}
+
+inline void
+HybirdAstar::set_hspeed_delta( double delta_v , double max_delta_v )
+{
+	_delta_v = delta_v;
+	_max_delta_v = max_delta_v;
+}
+
+inline void
+HybirdAstar::set_hspeed_interval( double min_v , double max_v )
+{
+	_min_v = min_v;
+	_max_v = max_v;
+}
+
+inline void
+HybirdAstar::set_aspeed_delta( double delta_w , double max_delta_w )
+{
+	_delta_w = delta_w;
+	_max_delta_w = max_delta_w;
+}
+
+inline void
+HybirdAstar::set_aspeed_interval( double min_w , double max_w )
+{
+	_min_w = min_w;
+	_max_w = max_w;
+}
 
 // ------------------ 内部接口 --------------------------------
 // 节点转路径：
@@ -157,7 +205,7 @@ HybirdAstar::_expand_node( hanode_t* p_node , nodevector_t& nodes )
 			// 条件：在地图内、在相邻格中、该位置安全
 			if( p_dmap->in( state._x , state._y ) \
 					&& _in_neighbor(center_pos , state._gpos ) \
-					&& (*p_dmap)(state._x , state._y) > _safe_distance )
+					&& (*p_dmap)(state._x , state._y)._d > _safe_distance )
 			{
 				hanode_t* p_newnode = create_node( state , p_node );
 				nodes.push_back( p_newnode );
@@ -275,8 +323,8 @@ HybirdAstar::_fill_heuristic( HybirdAstar::hanode_t* p_node )
 	double x = p_node->_state._x;
 	double y = p_node->_state._y;
 	double th = p_node->_state._th;
-	double v = p_node->_v;
-	double w = p_node->_w;
+	double v = p_node->_state._v;
+	double w = p_node->_state._w;
 	double depth = 0;
 	// 存在父节点，则计算路径深度：
 	if( p_node->p_parent )
@@ -314,7 +362,7 @@ HybirdAstar::_to_destangular( mixstate_t& r_state )
 	double dy = dest_pos._y - r_state._y;
 	double bearing = delta2rad( dx , dy );
 	double std_th = rad_hold( r_state._th );	
-	return fabs( breaing - std_th );
+	return fabs( bearing - std_th );
 	
 }
 
@@ -324,6 +372,7 @@ HybirdAstar::_state_distance( mixstate_t& r_st1 , mixstate_t& r_st2 )
 {
 	double dx = r_st1._x - r_st2._y;
 	double dy = r_st1._y - r_st2._y;
+	double dth = r_st1._th - r_st2._th;
 	return sqrt( dx*dx + dy*dy + dth*dth );
 }
 

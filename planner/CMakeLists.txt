@@ -1,5 +1,5 @@
 #------------- 变量设置 ------------------------------
-SET (LIB_SRC vfhplanner.cxx  localplanner.cxx  dsgplanner.cxx )
+SET (LIB_SRC vfhplanner.cxx  localplanner.cxx  hybirdastar.cxx dsgplanner.cxx )
 SET (LIB_NAME planner)
 
 INCLUDE_DIRECTORIES ( 
