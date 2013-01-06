@@ -80,9 +80,10 @@ HybirdAstar::get_path( path_t& r_path )
 	{
 		hanode_t* p_node = _openlist.front();
 		// 目标到达检查：
-		if( p_node->_state._gpos == _dest_cell )
+		if(_destination_reached( p_node->_state._gpos ) )
 		{
 			r_path.clear();
+			std::cout<<" A Star:Dest Reached!"<<std::endl;
 			_node_to_path( p_node , r_path );
 			return true;
 		}
@@ -155,6 +156,15 @@ HybirdAstar::set_aspeed_interval( double min_w , double max_w )
 }
 
 // ------------------ 内部接口 --------------------------------
+// 目标到达检查：
+bool
+HybirdAstar::_destination_reached( grid_pos_t& r_gpos )
+{
+	int di = abs( r_gpos._x - _dest_cell._x );
+	int dj = abs( r_gpos._y - _dest_cell._y );
+	return ( di <=2 && dj <=2 );
+}
+
 // 节点转路径：
 void 
 HybirdAstar::_node_to_path( hanode_t* p_node , path_t& r_path )
@@ -169,6 +179,8 @@ HybirdAstar::_node_to_path( hanode_t* p_node , path_t& r_path )
 		pos._x = p_rn->_state._x;
 		pos._y = p_rn->_state._y;
 		re_path.push_back( pos );
+		// 迁移到父节点：
+		p_rn = p_rn->p_parent;
 	}
 	// 反转路径：
 	size_t path_size = re_path.size();
@@ -179,12 +191,14 @@ HybirdAstar::_node_to_path( hanode_t* p_node , path_t& r_path )
 
 // 节点展开：
 void
-HybirdAstar::_expand_node( hanode_t* p_node , nodevector_t& nodes )
+HybirdAstar::_expand_node( hanode_t* p_node , nodevector_t& r_nodes )
 {
+	// 清除子结点表：
+	r_nodes.clear();
 	// 以当前状态为基础，进行迁移计算：
 	mixstate_t state = p_node->_state;
 	grid_pos_t center_pos = state._gpos;
-	double min_v = state._v - _max_delta_v;
+ 	double min_v = state._v - _max_delta_v;
 	if( min_v < _min_v )
 		min_v = _min_v;
 	double max_v = state._v + _max_delta_v;
@@ -198,8 +212,13 @@ HybirdAstar::_expand_node( hanode_t* p_node , nodevector_t& nodes )
 		max_w = _max_w;
 	// 尝试不同速度、角速度下的状态迁移：
 	for( double v = min_v ; v <= max_v ; v +=_delta_v )
-		for( double w = min_w ; w <= max_w ; w +=_delta_w )
+//		for( double w = min_w ; w <= max_w ; w +=_delta_w )
+		for( double w = _min_w ; w <= _max_w ; w += _delta_w )
 		{
+			// 还原state到中心：
+			state = p_node->_state;
+			center_pos = state._gpos;
+			// 迁移状态：
 			_transfer_state( state , v , w );
 			// 合法性检查:
 			// 条件：在地图内、在相邻格中、该位置安全
@@ -208,9 +227,39 @@ HybirdAstar::_expand_node( hanode_t* p_node , nodevector_t& nodes )
 					&& (*p_dmap)(state._x , state._y)._d > _safe_distance )
 			{
 				hanode_t* p_newnode = create_node( state , p_node );
-				nodes.push_back( p_newnode );
+				_add_node( r_nodes , p_newnode );
 			}
 		}
+}
+// 子结点的优选：
+void
+HybirdAstar::_add_node( nodevector_t& r_nodes , hanode_t* p_node )
+{
+	// 第一次加入节点，直接加入：
+	if( 0 == r_nodes.size() )
+	{
+		r_nodes.push_back( p_node );
+		return;
+	}
+	// 去除重复的节点：
+	for( size_t i = 0 ; i< r_nodes.size() ; i++ )
+	{
+		hanode_t* p_old = r_nodes[i];
+		// 留下速度大的：
+		if( p_old->_state._gpos == p_node->_state._gpos )
+		{
+			if( p_old->_state._v < p_node->_state._v )
+			{
+				r_nodes[i] = p_node;
+				destroy_node( p_old );
+			}
+			else
+				destroy_node( p_node );
+			return;
+		}
+	}
+	// 均不相同，则直接加入尾部：
+	r_nodes.push_back( p_node );
 }
 
 // 状态迁移计算：
@@ -280,9 +329,8 @@ HybirdAstar::_transfer_state( mixstate_t& r_state , double v , double w )
 inline bool
 HybirdAstar::_in_neighbor( grid_pos_t& r_centerpos , grid_pos_t& r_pos )
 {
-	int di = r_centerpos._x - r_pos._x;
-	int dj = r_centerpos._y - r_pos._y;
-	return ( di>= -1 && di <= 1 && dj >= -1 && dj <= 1 );
+	int dd = abs( r_centerpos._x - r_pos._x)+abs( r_centerpos._y - r_pos._y);
+	return ( dd > 0 && dd <=2 );
 }
 
 // 节点管理：
@@ -401,17 +449,26 @@ HybirdAstar::_insert_closelist( hanode_t* p_node )
 void
 HybirdAstar::_insert_list( nodelist_t& r_list , hanode_t* p_node )
 {
+	if( r_list.size() == 0 )
+	{
+		// 如果表空，则直接放到表内
+		r_list.push_back( p_node );
+		return;
+	}
 	nodelist_t::iterator it = r_list.begin();
 	// 搜索全部节点，排除相同点：
 	for( ; it != r_list.end() ; it++ )
 	{
 		hanode_t* p_lstnode = *it;
 		// 对位置进行比较
-		grid_pos_t& r_lnpos = p_lstnode->_state._gpos;
-		grid_pos_t& r_inpos = p_node->_state._gpos;
+//		grid_pos_t& r_lnpos = p_lstnode->_state._gpos;
+//		grid_pos_t& r_inpos = p_node->_state._gpos;
 		// 存在则不插入：
-		if( r_lnpos == r_inpos )
-			return ;
+//		if( r_lnpos == r_inpos )
+//		{
+//			destroy_node( p_node );
+//			return ;
+//		}
 		// 找到合适的位置插入
 		if( p_node->_heuristic < p_lstnode->_heuristic )
 		{
@@ -420,5 +477,5 @@ HybirdAstar::_insert_list( nodelist_t& r_list , hanode_t* p_node )
 		}
 	}
 	// 如果无合适位置，直接插入表：
-	r_list.insert( it , p_node );
+	r_list.push_back( p_node );
 }

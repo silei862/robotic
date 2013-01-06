@@ -43,8 +43,8 @@ namespace SlamLab
 		static const double def_max_delta_w = 0.3;
 		static const double def_min_v = 0.1;
 		static const double def_max_v = 1.0;
-		static const double def_min_w = -0.5;
-		static const double def_max_w = 0.5;
+		static const double def_min_w = -0.3;
+		static const double def_max_w = 0.3;
 
 	// ------------ 类型 -----------------
 		// 混合状态：
@@ -98,7 +98,8 @@ namespace SlamLab
 			void destroy_node( hanode_t* p_node );
 			// --------------- 节点展开 -------------------
 			void _node_to_path( hanode_t* p_node , path_t& r_path );
-			void _expand_node( hanode_t* p_node , nodevector_t& nodes );
+			void _expand_node( hanode_t* p_node , nodevector_t& r_nodes );
+			void _add_node( nodevector_t& r_nodes , hanode_t* p_node );
 			void _transfer_state( mixstate_t& r_state , double v , double w);
 			bool _in_neighbor( grid_pos_t& r_centerpos , grid_pos_t& r_pos );
 			// --------------- 计算启发函数 -----------------------
@@ -111,6 +112,8 @@ namespace SlamLab
 			void _insert_openlist( hanode_t* p_node );
 			void _insert_closelist( hanode_t* p_node );
 			void _insert_list( nodelist_t& r_list , hanode_t* p_node );
+			// 目标到达检查：
+			bool _destination_reached( grid_pos_t& r_gpos );
 			
 		private:
 			// 安全距离：

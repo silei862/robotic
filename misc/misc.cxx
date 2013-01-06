@@ -29,7 +29,7 @@ double SlamLab::rad_standardize( double rad )
 	return _rad;
 }
 
-double rad_hold( double rad )
+double SlamLab::rad_hold( double rad )
 {
 	double _rad = fmod( rad , 2*PI );
 	if( _rad > PI )

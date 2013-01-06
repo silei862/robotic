@@ -25,7 +25,7 @@ namespace SlamLab
 	
 	inline double R2D( double rad ){ return rad*180/3.1415926535; }
 	
-	inline double rad_standardize( double rad );
+	double rad_standardize( double rad );
 	// 角度限制：
 	double rad_hold( double rad );
 	// 计算坐标差计算弧度：

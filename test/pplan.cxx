@@ -21,7 +21,7 @@ using namespace std;
 #include <debug.h>
 #include <distancegrid.h>
 #include <mapfile.h>
-#include <dsgplanner.h>
+#include <hybirdastar.h>
 using namespace SlamLab;
 
 
@@ -43,21 +43,21 @@ int main()
 	double th = sth;
 	double t;
 	// 初始化路径规划器：
-	DSGGuider dsguider( dmap );
-	ctrlgroup_t ctrl_group;
-	dsguider.set_start(sx , sy, sth );
-	dsguider.set_destination( 6,6,0.3);
+	HybirdAstar planner( dmap, 0.3 );
+	planner.set_destination( 6.0 , 6.0 );
+	planner.set_start( sx , sy , sth );
+	path_t paths;
 	// 获取路径：
 	DBG_INFO( "========== Before Get Control ==========" );
-	bool success=dsguider.get_controls( ctrl_group );
+	bool success= planner.get_path( paths );
 	if( success )
 	{
 		cout<<" Success get path! "<<endl;
 		cout<<"[Start]-->";
-		for( size_t i =0; i<ctrl_group.size(); i++ )
+		for( size_t i =0; i<paths.size(); i++ )
 		{
 			
-			cout<<"["<<ctrl_group[i]._v<<","<<ctrl_group[i]._w<<","<<ctrl_group[i]._tl<<"]-->";
+			cout<<"["<<paths[i]._x<<","<<paths[i]._y<<"]-->";
 		}
 		cout<<"[End]"<<endl;
 	}
