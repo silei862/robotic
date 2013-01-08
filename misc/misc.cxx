@@ -33,7 +33,7 @@ double SlamLab::rad_hold( double rad )
 {
 	double _rad = fmod( rad , 2*PI );
 	if( _rad > PI )
-		_rad = 2*PI - _rad;
+		_rad = -2*PI + _rad;
 	if( _rad < -1*PI )
 		_rad = 2*PI + _rad;
 	return _rad;

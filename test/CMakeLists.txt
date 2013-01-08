@@ -40,6 +40,18 @@ TARGET_LINK_LIBRARIES( mapping mapbuilder
 					 		   ${PLAYERCXX_LIBRARIES}
 					 )
 
+ADD_EXECUTABLE( astarplan astarplan.cxx )
+TARGET_LINK_LIBRARIES( astarplan mapbuilder
+							   playerwrapper
+							   bridge
+							   gridmap
+							   planner
+							   misc
+							   datatrans
+					 		   ${PLAYERCXX_LIBRARIES}
+					 )
+
+
 ############## PPlan #############
 ADD_EXECUTABLE( pplan pplan.cxx )
 TARGET_LINK_LIBRARIES( pplan   gridmap

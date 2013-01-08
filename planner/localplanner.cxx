@@ -53,7 +53,7 @@ bool SlamLab::goto_pos( Position2DBridge& r_posbr , const Position2D& dest_pos ,
 
 
 // ------------------------- simple collision avoid ---------------------------
-static const double safe_distance = 0.5;
+static const double safe_distance = 0.2;
 static const double default_speed = 0.7;
 static const double default_turnrate = 1.7;
 

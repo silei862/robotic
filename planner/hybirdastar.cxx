@@ -29,7 +29,7 @@ HybirdAstar::HybirdAstar( DistanceMap& r_dmap, double safe_d )
 	p_dmap = &r_dmap;
 	_safe_distance = safe_d;
 	// 计算状态迁移步长：
-	_step_len = 1.1*p_dmap->cell_size(); 
+	_step_len = 1.2*p_dmap->cell_size(); 
 	// 设置默认参数：
 	set_heuristic_para( def_h_depth , def_h_theta , def_h_todest );
 	set_hspeed_delta( def_delta_v , def_max_delta_v );
@@ -83,7 +83,7 @@ HybirdAstar::get_path( path_t& r_path )
 		if(_destination_reached( p_node->_state._gpos ) )
 		{
 			r_path.clear();
-			std::cout<<" A Star:Dest Reached!"<<std::endl;
+			DBG_INFO( " A Star: Destination Reached!" );
 			_node_to_path( p_node , r_path );
 			return true;
 		}
@@ -94,6 +94,8 @@ HybirdAstar::get_path( path_t& r_path )
 		_expand_node( p_node ,chnodes ); 		
 		for( size_t i = 0 ; i < chnodes.size() ; i++ )
 			_insert_openlist( chnodes[i] );
+		if( _closelist.size() > 32*1024 )
+			return false;
 	}
 	return false;
 }
@@ -212,12 +214,16 @@ HybirdAstar::_expand_node( hanode_t* p_node , nodevector_t& r_nodes )
 		max_w = _max_w;
 	// 尝试不同速度、角速度下的状态迁移：
 	for( double v = min_v ; v <= max_v ; v +=_delta_v )
-//		for( double w = min_w ; w <= max_w ; w +=_delta_w )
-		for( double w = _min_w ; w <= _max_w ; w += _delta_w )
+	//for( double w = min_w ; w <= max_w ; w +=_delta_w )
+		//double v = _min_v + _delta_v;
+		for( int w_mul = _min_w/_delta_w ; w_mul <= _max_w/_delta_w ; w_mul++ )
 		{
+			double w = w_mul * _delta_w;
 			// 还原state到中心：
 			state = p_node->_state;
 			center_pos = state._gpos;
+			// 设定步长：
+			_step_len = 1.2*p_dmap->cell_size();
 			// 迁移状态：
 			_transfer_state( state , v , w );
 			// 合法性检查:
@@ -228,6 +234,7 @@ HybirdAstar::_expand_node( hanode_t* p_node , nodevector_t& r_nodes )
 			{
 				hanode_t* p_newnode = create_node( state , p_node );
 				_add_node( r_nodes , p_newnode );
+				//r_nodes.push_back( p_newnode );
 			}
 		}
 }
@@ -266,42 +273,39 @@ HybirdAstar::_add_node( nodevector_t& r_nodes , hanode_t* p_node )
 void 
 HybirdAstar::_transfer_state( mixstate_t& r_state , double v , double w )
 {
-	static const size_t NS=2;
 	// 迁移准备：
 	double x = r_state._x;
 	double y = r_state._y;
 	double th = rad_hold( r_state._th );
 	double delta_t;
-	// 获取网格边长：
-	double cell_size = p_dmap->cell_size();
 	// 计算步长：
-	if( th > -1*PI/4  && th < PI/4 )
-	{ 	// x变化为正：
+	if( th >= -1*PI/4  && th < PI/4 )
+	{ 	// x变化为正(-45~45)：
 		if( 0 == w )
 			delta_t = _step_len/(v*cos(th));
 		else
 			delta_t = (asin( _step_len*w/v + sin( th )) - th )/w;
 	}
 	else if( th >= PI/4 && th< 3*PI/4 )
-	{	// y变化为正
+	{	// y变化为正(45~135)
 		if( 0 == w )
 			delta_t = _step_len/(v*sin(th));
 		else
 			delta_t = (acos( -1*_step_len*w/v + cos( th )) - th )/w;
 	}
 	else if((th >= 3*PI/4 && th < PI )||( th >= -1*PI && th < -3*PI/4 ))
-	{	// x变化为负
+	{	// x变化为负(135~180,-180~-135)
 		if( 0 == w )
 			delta_t = -1*_step_len/(v*cos(th));
 		else
-			delta_t = ( asin( -1*_step_len*w/v + sin( th )) - th )/w;
+			delta_t = ( PI - asin( -1*_step_len*w/v + sin( th )) - th )/w;
 	}
 	else if( th >= -3*PI/4 && th < -1*PI/4 )
-	{	// y变化为负
+	{	// y变化为负(-180~-135)
 		if( 0 == w )
 			delta_t = -1*_step_len/(v*sin(th));
 		else
-			delta_t = ( acos( _step_len*w/v + cos( th )) - th )/w;
+			delta_t = ( -1*acos( _step_len*w/v + cos( th )) - th )/w;
 	}
 
 	// 迁移状态：
@@ -315,6 +319,7 @@ HybirdAstar::_transfer_state( mixstate_t& r_state , double v , double w )
 		x += ( sin( w*delta_t + th ) - sin( th ) )*v/w;
 		y += ( cos( w*delta_t + th ) - cos( th ) )*v*(-1)/w;
 		th += w*delta_t;
+		th = rad_hold( th );
 	}
 	// 填充新状态：
 	r_state._gpos = p_dmap->pos2sq( x , y);
@@ -330,7 +335,7 @@ inline bool
 HybirdAstar::_in_neighbor( grid_pos_t& r_centerpos , grid_pos_t& r_pos )
 {
 	int dd = abs( r_centerpos._x - r_pos._x)+abs( r_centerpos._y - r_pos._y);
-	return ( dd > 0 && dd <=2 );
+	return ( dd > 0 && dd <=4 );
 }
 
 // 节点管理：

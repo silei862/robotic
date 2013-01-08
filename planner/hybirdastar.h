@@ -34,17 +34,17 @@ namespace SlamLab
 	{
 	// ------------ 常量 --------------------
 		static const double def_h_depth = 10;
-		static const double def_h_theta = 10;
-		static const double def_h_todest = 10;
+		static const double def_h_theta = 5;
+		static const double def_h_todest = 20;
 		// 运动限制参数：
 		static const double def_delta_v = 0.1;
 		static const double def_max_delta_v = 0.3;
 		static const double def_delta_w = 0.1;
 		static const double def_max_delta_w = 0.3;
-		static const double def_min_v = 0.1;
-		static const double def_max_v = 1.0;
-		static const double def_min_w = -0.3;
-		static const double def_max_w = 0.3;
+		static const double def_min_v = 0.2;
+		static const double def_max_v = 0.8;
+		static const double def_min_w = -0.5;
+		static const double def_max_w = 0.5;
 
 	// ------------ 类型 -----------------
 		// 混合状态：
@@ -78,7 +78,7 @@ namespace SlamLab
 			~HybirdAstar();
 		// -----------------  用户接口 ---------------
 			// 设置起始状态、终点： 
-			void set_start( double x , double y , double th , double v=0 , double w=0 );
+			void set_start( double x , double y , double th , double v=0.1 , double w=0 );
 			void set_destination( double x , double y );
 			// 参数设置：
 			void set_heuristic_para( double k_depth , double k_theta , double k_todest );
