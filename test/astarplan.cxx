@@ -66,7 +66,8 @@ void* user_control( void* p_data )
 		cout<<" y=";cin>>p_ctrl->_y;
 		p_ctrl->_valnew = true;
 		// 退出询问：
-		cout<<" Exit Planning?";cin>>ex_query;
+		cout<<" Exit Planning?"<<endl;
+		cin>>ex_query;
 		if( ex_query == "y" )
 		{
 			p_ctrl->_exit = true;
@@ -140,8 +141,7 @@ int main( int argc, char* argv[] )
 			double ry=pos2d_bridge.get_y_pos();
 			double rth=pos2d_bridge.get_yaw();
 			// 绘制地图：
-			//ranger_bridge>>map_builder>>map;
-			ranger_bridge>>himm_uvgen( pos2d_bridge ,map )>>update_vectors>>dmm_builder( map , rx , ry )>>dmap;
+			//ranger_bridge>>himm_uvgen( pos2d_bridge ,map )>>update_vectors>>dmm_builder( map , rx , ry )>>dmap;
 			// 检查数据用户输入
 			if( user_ctrl._valnew && !guiding )
 			{
@@ -149,7 +149,13 @@ int main( int argc, char* argv[] )
 				if( dmap.in( user_ctrl._x , user_ctrl._y ) && dmap( user_ctrl._x , user_ctrl._y )._d > 0.45 )
 				{
 					guider.set_destination( user_ctrl._x , user_ctrl._y );
-					guider.set_start( rx , ry , rth ); 
+					// 设置起始点：
+					robot.Read();
+					double cx=pos2d_bridge.get_x_pos();
+					double cy=pos2d_bridge.get_y_pos();
+					double cth=pos2d_bridge.get_yaw();
+					cout<<endl<<"robot current position:["<<cx<<","<<cy<<"]"<<endl;
+					guider.set_start( cx , cy , cth ); 
 					// 获取路径,如果成功则启动导航：
 					if( guider.get_path( gpath ) )
 					{
@@ -169,50 +175,35 @@ int main( int argc, char* argv[] )
 				// 清除新数据标志：
 				user_ctrl._valnew = false;
 			}
-
-			// 调用防撞漫游控制计算函数：
-			if(simple_collision_avoid( ranger_bridge , stc ))
-			{
-				//cout<<" inovke collision avoid!"<<endl;
-				pos2d_bridge.set_speed( stc._ahead_veloc , stc._angular_veloc );
-				continue;
-			}
 			if( guiding )
 			{
+				// 调用防撞漫游控制计算函数：
+				if(simple_collision_avoid( ranger_bridge , stc ))
+				{
+					//cout<<" inovke collision avoid!"<<endl;
+					pos2d_bridge.set_speed( stc._ahead_veloc , stc._angular_veloc );
+					continue;
+				}
 				// 按照路径进行导航：
 				bool acheived = goto_pos( pos2d_bridge,gpath[pos_index],stc, 0.3 );
 				if( acheived )
 				{
 					cout<<"["<<gpath[pos_index]._x<<","<<gpath[pos_index]._y<<"] reached!"<<endl;
 					pos_index ++;
-					if( pos_index > gpath.size() )
+					if( pos_index >= gpath.size() )
 					{
 						pos_index = 0;
 						guiding = false;
+						//停机：
+						pos2d_bridge.set_speed( 0 , 0 );
+						//提示信息
+						cout<<"Destination reached! Exit guider?"<<endl;;
 					}
 				}
 				else
 					pos2d_bridge.set_speed( stc._ahead_veloc , stc._angular_veloc );
 			}
 		}
-		// 地图数据的保存
-		ofstream mapfile( "cvgrid.cmap" );
-		mapfile<<map;
-		mapfile.close();
-		ifstream imapfile( "cvgrid.cmap" );
-		HIMMGrid mp;
-		imapfile>>mp;
-		cout<<mp;
-		imapfile.close();
-		// 距离网格地图测试
-		ofstream dmapfile( "dmgrid.dmap" );
-		dmapfile<<dmap;
-		dmapfile.close();
-		ifstream idmapfile( "dmgrid.dmap" );
-		DistanceMap idmap;
-		idmapfile>>idmap;
-		cout<<idmap;
-		idmapfile.close();
 	}
 	catch( Exception& e )
 	{

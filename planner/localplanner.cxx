@@ -45,9 +45,9 @@ bool SlamLab::goto_pos( Position2DBridge& r_posbr , const Position2D& dest_pos ,
 	// 计算角速度产生速度控制
 	r_stc._angular_veloc = delta_beta/3;
 	if( fabs(r_stc._angular_veloc) > 0.05 )
-		r_stc._ahead_veloc = 0.2;
+		r_stc._ahead_veloc = 0.1;
 	else
-		r_stc._ahead_veloc = 0.6;
+		r_stc._ahead_veloc = 0.3;
 	return false;
 }
 

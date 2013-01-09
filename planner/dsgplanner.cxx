@@ -18,10 +18,23 @@
 #include <stdlib.h>
 #include <cmath>
 #include <exception.h>
+#include <misc.h>
 #include <dsgplanner.h>
 
 using namespace std;
 using namespace SlamLab;
+
+// ----------------- 可行位置常量组 -------------
+const DSGGuider::statetrans_t 
+DSGGuider::strans[DIR_NUM][OP_NUM] = \
+						 {{{ 1 , 0 , 0 },{ 1 ,-1 , 7 },{ 1 , 1 , 1 }},	//0
+						  {{ 1 , 1 , 1 },{ 1 , 0 , 0 },{ 0 , 1 , 2 }},	//1
+						  {{ 0 , 1 , 2 },{ 1 , 1 , 1 },{-1 , 1 , 3 }},	//2
+						  {{-1 , 1 , 3 },{ 0 , 1 , 2 },{-1 , 0 , 4 }},	//3
+						  {{-1 , 0 , 4 },{-1 , 1 , 3 },{-1 ,-1 , 5 }},	//4
+						  {{-1 ,-1 , 5 },{-1 , 0 , 4 },{ 0 ,-1 , 6 }},	//5
+						  {{ 0 ,-1 , 6 },{-1 ,-1 , 5 },{ 1 ,-1 , 7 }},	//6
+						  {{ 1 ,-1 , 7 },{ 0 ,-1 , 6 },{ 1 , 0 , 0 }}};	//7
 
 // ----------------- 对外接口 --------------------
 
@@ -29,7 +42,6 @@ DSGGuider::DSGGuider( DistanceMap& r_dmap , double safe_distance )
 {
 	p_dmap = &r_dmap;
 	_safe_distance = safe_distance;
-	_nodelist.clear();
 	// 设置默认参数：
 	set_heuristic_para( def_h_depth , def_h_destination, def_h_dvalue );
 	set_nodelist_len( def_max_node_num );
@@ -43,10 +55,11 @@ DSGGuider::set_start( double x , double y , double th )
 		throw_info( " Position out of map!" );
 	if( (*p_dmap)( x , y)._d <= _safe_distance )
 		throw_info( " Dangerous start point!" );
-
+	_nodelist.clear();
 	// 根据传入参数生成首节点：
 	exnode_t node;
 	node._pos = p_dmap->pos2sq( x , y );
+	node._direction = _dir_trans( th );
 	node._inopen = true;
 	node._heuristic = 0;
 	node._depth = 0;
@@ -70,6 +83,7 @@ DSGGuider::set_destination( double x , double y )
 bool
 DSGGuider::get_path( path_t& r_path )
 {
+	r_path.clear();
 	return _get_path( r_path );
 }
 
@@ -88,6 +102,19 @@ DSGGuider::set_nodelist_len( size_t len )
 }
 
 // ----------------- 内部函数 ------------------
+uint8_t
+DSGGuider::_dir_trans( double rad )
+{
+	double th = rad_hold( rad );
+	// 逆时针旋转一次
+	th += PI/8;
+	// 计算方位量化值：
+	int int_dir = int( th*4/PI );
+	if( int_dir < 0 )
+		int_dir += 7;
+	return uint8_t( int_dir );
+}
+
 bool
 DSGGuider::_get_path( path_t& r_path )
 {
@@ -106,15 +133,17 @@ DSGGuider::_get_path( path_t& r_path )
 		}
 		node._inopen = false;
 		// 展开节点：
-		for( int j = -1 ; j<=1 ; j++ )
-			for( int i = -1 ; i <=1 ; i++ )
+		//for( int j = -1 ; j<=1 ; j++ )
+		//	for( int i = -1 ; i <=1 ; i++ )
+		uint8_t dir = node._direction;
+		for(size_t i = 0 ; i< OP_NUM ; i++ )
 			{
 				// 中心不计算：
-				if( j == 0 && i == 0 )
-					continue;
+				//if( j == 0 && i == 0 )
+				//	continue;
 				// 计算相邻格坐标：
-				int x = int(node._pos._x) + i;
-				int y = int(node._pos._y) + j;
+				int x = int(node._pos._x) + strans[dir][i]._dx;
+				int y = int(node._pos._y) + strans[dir][i]._dy;
 				// 坐标合法性检查：
 				if( x < 0 || y < 0 )
 					continue;
@@ -127,6 +156,7 @@ DSGGuider::_get_path( path_t& r_path )
 				newnode._inopen = true;
 				newnode._pos._x = size_t( x );
 				newnode._pos._y = size_t( y );
+				newnode._direction = strans[dir][i]._dir;
 				newnode.p_parent = &node;
 				_fill_heuristic( newnode );
 				_insert_node( newnode );

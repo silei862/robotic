@@ -33,6 +33,7 @@ namespace SlamLab
 		struct exnode_t
 		{
 			grid_pos_t	_pos;
+			uint8_t		_direction;
 			bool		_inopen;
 			double		_heuristic;
 			double		_depth;
@@ -44,8 +45,18 @@ namespace SlamLab
 		static const size_t def_max_node_num = 64*1024;
 		static const double def_h_depth = 10;
 		static const double def_h_destination = 20;
-		static const double def_h_dvalue = 30;
-
+		static const double def_h_dvalue = 80;
+		// 状态迁移操作
+		struct statetrans_t
+		{
+			int		_dx;
+			int		_dy;
+			uint8_t	_dir;
+		};
+		// 可行位置常量
+		const static size_t DIR_NUM = 8;
+		const static size_t OP_NUM = 3;
+		const static statetrans_t strans[DIR_NUM][OP_NUM];
 		// --------------------------------------------------
 		public:
 			DSGGuider( DistanceMap& r_dmap , double safe_distance );
@@ -68,6 +79,8 @@ namespace SlamLab
 			void _node_to_path( exnode_t& r_node , path_t& r_path );
 			void _fill_heuristic( exnode_t& r_node );
 			void _insert_node( exnode_t& r_node );
+			// 方位转换：
+			uint8_t _dir_trans( double rad );
 
 		// --------------------------------------------------
 		private:
