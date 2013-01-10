@@ -20,9 +20,9 @@
 using namespace std;
 #include <debug.h>
 #include <exception.h>
+#include <misc.h>
 #include <distancegrid.h>
 #include <mapfile.h>
-//#include <hybirdastar.h>
 #include <dsgplanner.h>
 using namespace SlamLab;
 
@@ -59,11 +59,18 @@ int main()
 			cout<<" Success get path! "<<endl;
 			cout<<"[Start]-->";
 			for( size_t i =0; i<paths.size(); i++ )
-			{
-			
 				cout<<"["<<paths[i]._x<<","<<paths[i]._y<<"]-->";
+			cout<<"[End]"<<endl<<endl;
+			// 输出角差
+			for( size_t i = 0 ; i < paths.size()-1 ; i++ )
+			{
+				double dx = paths[i+1]._x - paths[i]._x;
+				double dy = paths[i+1]._y - paths[i]._y;
+				double rad = delta2rad( dx , dy );
+				cout<<R2D( rad )<<"-->";
 			}
-			cout<<"[End]"<<endl;
+			cout<<endl;
+
 		}
 		else
 			cout<<" Get path fail!" <<endl;

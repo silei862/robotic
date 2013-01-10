@@ -44,9 +44,11 @@ double SlamLab::delta2rad( double dx , double dy )
 	double dd = sqrt( dx*dx + dy*dy );
 	double rad = asin( dy/dd );
 	if( dx < 0 )
+	{
 		if( rad >= 0 )
 			rad = PI - rad;
 		else
 			rad = -1*PI - rad;
+	}
 	return rad;
 }
