@@ -38,7 +38,7 @@ ELSE( PLAYERCXX_FOUND )
 	MESSAGE(STATUS ${INDENT} "Player not detected. If Player is installed but not detected, check your PKG_CONFIG_PATH." )
 ENDIF( PLAYERCXX_FOUND )
 
-SET ( CMAKE_CXX_FLAGS "-ggdb" )
+SET ( CMAKE_CXX_FLAGS "-O3" )
 # 子目录
 ADD_SUBDIRECTORY ( misc )
 ADD_SUBDIRECTORY ( gridmap )

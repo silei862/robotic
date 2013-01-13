@@ -21,6 +21,7 @@
 #include <vector>
 #include <coord.h>
 #include <distancegrid.h>
+#define _EXPAND_ALL_NODE_
 
 namespace SlamLab
 {

@@ -133,17 +133,33 @@ DSGGuider::_get_path( path_t& r_path )
 		}
 		node._inopen = false;
 		// 展开节点：
-		//for( int j = -1 ; j<=1 ; j++ )
-		//	for( int i = -1 ; i <=1 ; i++ )
-		uint8_t dir = node._direction;
-		for(size_t i = 0 ; i< OP_NUM ; i++ )
-			{
+
+#ifdef _EXPAND_ALL_NODE_
+		for( int j = -1 ; j<=1 ; j++ )	//***
+			for( int i = -1 ; i <=1 ; i++ )	//***
+#endif //_EXPAND_ALL_NODE_ 
+
+#ifndef _EXPAND_ALL_NODE_ 				
+		uint8_t dir = node._direction;		//###
+		for(size_t i = 0 ; i< OP_NUM ; i++ ) //###
+#endif //_EXPAND_ALL_NODE_
+
+		{
 				// 中心不计算：
-				//if( j == 0 && i == 0 )
-				//	continue;
+#ifdef _EXPAND_ALL_NODE_
+				if( j == 0 && i == 0 )	//***
+					continue;			//***
+#endif
 				// 计算相邻格坐标：
-				int x = int(node._pos._x) + strans[dir][i]._dx;
-				int y = int(node._pos._y) + strans[dir][i]._dy;
+#ifndef _EXPAND_ALL_NODE_
+				int x = int(node._pos._x) + strans[dir][i]._dx; //###
+				int y = int(node._pos._y) + strans[dir][i]._dy; //###
+#endif
+
+#ifdef _EXPAND_ALL_NODE_
+				int x = int( node._pos._x ) + i;	//***
+				int y = int( node._pos._y ) + j;	//***
+#endif
 				// 坐标合法性检查：
 				if( x < 0 || y < 0 )
 					continue;
@@ -156,14 +172,18 @@ DSGGuider::_get_path( path_t& r_path )
 				newnode._inopen = true;
 				newnode._pos._x = size_t( x );
 				newnode._pos._y = size_t( y );
-				newnode._direction = strans[dir][i]._dir;
+
+#ifndef _EXPAND_ALL_NODE_
+				newnode._direction = strans[dir][i]._dir; //###
+#endif	//_EXPAND_ALL_NODE_
+
 				newnode.p_parent = &node;
 				_fill_heuristic( newnode );
 				_insert_node( newnode );
 				// 列表深度检查：
 				if( _nodelist.size() > _max_node_num )
 					return false;
-			}
+		}
 	}
 	return false;
 }

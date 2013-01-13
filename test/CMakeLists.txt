@@ -68,7 +68,7 @@ TARGET_LINK_LIBRARIES( showmap datatrans
 					 		   ${PLAYERCXX_LIBRARIES}
 					 )
 
-############## Mapping #############
+############## dmtest  #############
 ADD_EXECUTABLE( dmtest dmtest.cxx )
 TARGET_LINK_LIBRARIES( dmtest mapbuilder
 							   playerwrapper
@@ -77,6 +77,28 @@ TARGET_LINK_LIBRARIES( dmtest mapbuilder
 							   planner
 							   misc
 					 		   ${PLAYERCXX_LIBRARIES}
+					 )
+
+############## addsingle  #############
+ADD_EXECUTABLE( addsingle addsingle.cxx )
+TARGET_LINK_LIBRARIES( addsingle mapbuilder
+							   	 playerwrapper
+							   	 bridge
+							   	 gridmap
+							   	 planner
+							   	 misc
+					 		   	 ${PLAYERCXX_LIBRARIES}
+					 )
+
+############## cleartest #############
+ADD_EXECUTABLE( cleartest cleartest.cxx )
+TARGET_LINK_LIBRARIES( cleartest mapbuilder
+							     playerwrapper
+							     bridge
+							     gridmap
+							     planner
+							     misc
+					 		     ${PLAYERCXX_LIBRARIES}
 					 )
 
 ############## MapWin #############

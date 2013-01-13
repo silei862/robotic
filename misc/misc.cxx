@@ -52,3 +52,17 @@ double SlamLab::delta2rad( double dx , double dy )
 	}
 	return rad;
 }
+
+double SlamLab::operator-( timeval_t& r_end , timeval_t& r_start )
+{
+	time_t dsec = r_end.tv_sec - r_start.tv_sec;
+	suseconds_t dusec = r_end.tv_usec - r_start.tv_usec;
+	// 借位：
+	if( dusec < 0 )
+	{
+		dusec +=1000000;
+		dsec--;
+	}
+	double delta_sec = double( dsec ) + double( dusec )/1000000.0;
+	return delta_sec;
+}

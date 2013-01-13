@@ -26,9 +26,10 @@ using namespace std;
 
 using namespace SlamLab;
 
-const int DMMBuilder::delta_i[DELTA_NUMS]={ -1,-1,-1, 0,0, 1,1,1 };
-const int DMMBuilder::delta_j[DELTA_NUMS]={ -1, 0, 1,-1,1,-1,0,1 };
-
+//const int DMMBuilder::delta_i[DELTA_NUMS]={ -1,-1,-1, 0,0, 1,1,1 };
+//const int DMMBuilder::delta_j[DELTA_NUMS]={ -1, 0, 1,-1,1,-1,0,1 };
+const int DMMBuilder::delta_i[DELTA_NUMS]={-1, 1, 0, 0,-1, 1,-1, 1};
+const int DMMBuilder::delta_j[DELTA_NUMS]={ 0, 0,-1, 1,-1, 1, 1,-1};
 // 设置地图更新向量的操作符
 DMMBuilder&
 SlamLab::operator>>( uvectors_t& r_uvec , DMMBuilder& r_dmmbd )
