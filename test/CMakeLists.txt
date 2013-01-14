@@ -40,6 +40,18 @@ TARGET_LINK_LIBRARIES( mapping mapbuilder
 					 		   ${PLAYERCXX_LIBRARIES}
 					 )
 
+############## Mappingtime #############
+ADD_EXECUTABLE( mappingtime mappingtime.cxx )
+TARGET_LINK_LIBRARIES( mappingtime 	mapbuilder
+							   		playerwrapper
+							   		bridge
+							   		gridmap
+							   		planner
+							   		misc
+							   		datatrans
+					 		   		${PLAYERCXX_LIBRARIES}
+					 )
+
 ADD_EXECUTABLE( astarplan astarplan.cxx )
 TARGET_LINK_LIBRARIES( astarplan mapbuilder
 							   playerwrapper

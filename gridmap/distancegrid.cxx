@@ -72,6 +72,10 @@ DistanceMap::DistanceMap( const DistanceMap& dm )
 void DistanceMap::set_attr( size_t cols , size_t rows , double cell_size , float_pos_t org )
 {
 	_grid.set_attr( cols , rows , cell_size , org );
+	double w = _grid.width();
+	double h = _grid.height();
+	_max_distance = sqrt( w*w + h*h );
+
 }
 
 // 获取距离网格各类基本属性

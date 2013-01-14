@@ -16,7 +16,9 @@
 * =====================================================================================
 */
 #include <stdlib.h>
+#include <fstream>
 #include <iostream>
+#include <sys/time.h>
 #include <libplayerc++/playerc++.h>
 #include <playerwrapper.h>
 #include <himmbuilder.h>
@@ -51,18 +53,6 @@ static const Position2D positions[] = { Position2D(-7,6) ,Position2D(-6,5.5), Po
 										Position2D(-2,2) , Position2D(-2,-2) , Position2D(0,-1.5), 
 										Position2D(5,-1.5) , Position2D(7,-4), Position2D(4,-4),
 										Position2D(3,-6.5), Position2D(0,-6.5),Position2D(-7,-7) };
-/*static const size_t pos_num = 28;
-static const Position2D positions[] = { Position2D(1,-4.5) ,Position2D(8,-3.8),Position2D(-8.5,-3.8),
-										Position2D(-8.5,5.7),Position2D(-5.7,6),Position2D(-6,9),
-										Position2D(-9,9),Position2D(-5.7,6.5),Position2D(-6,5.7),
-										Position2D(-4.2,6),Position2D(-4.2,9),Position2D(-1.5,8),
-										Position2D(-4.2,7),Position2D(-4.2,6),Position2D(0,5),
-										Position2D(4,6),Position2D(2.5,8.5),Position2D(0.5,5),
-										Position2D(-3.5,4.5),Position2D(-4,-2),Position2D(0.8,0),
-										Position2D(1.5,3),Position2D(3.5,2),Position2D(0.8,1),
-										Position2D(0.8,-1),Position2D(4,-1),Position2D(1,-4),
-										Position2D(1,-9) };
-*/
 static size_t pos_index = 0;
 
 int main( int argc, char* argv[] )
@@ -81,13 +71,10 @@ int main( int argc, char* argv[] )
 	uvectors_t update_vectors;
 	DMMBuilder dmm_builder( 16 , 6 , 10, 10.0 );
 	// 地图初始化
-	HIMMGrid map(22.0,22.0,0.2,Point2D<double>(-11.0,-11.0));
+	HIMMGrid map(20.0,20.0,0.2,Point2D<double>(-10.0,-10.0));
 	DistanceMap dmap( map );
 	map.set_all_val(0);
-	// 初始化地图服务器：
-	MapServer map_sv;
-	map_sv.init();
-	map_sv.start();
+
 	// 行走控制结构
 	SteerCtrl stc;
 	// 对环境预先扫描
@@ -99,6 +86,22 @@ int main( int argc, char* argv[] )
 		double yaw=pos2d_bridge.get_yaw();
 		pos2d_bridge.set_speed( 0.0,0.7 );
 	}
+	// 圈数计数器
+	size_t cir_counter = 1;
+	static const size_t MAX_CIR =10;
+	// 时间计算参数
+	double time_sum = 0;
+	size_t time_count = 0;
+	struct timeval start_time;
+	struct timeval end_time;
+	// 数据输出文件：
+	ofstream datafile("evupdatetime.dat");	
+	if( datafile.fail() )
+	{
+		cout<<"创建数据文件失败！"<<endl;
+		return EXIT_FAILURE;
+	}
+	
 	// 地图绘制
 	for(;;)
 	{
@@ -106,13 +109,16 @@ int main( int argc, char* argv[] )
 		double rx=pos2d_bridge.get_x_pos();
 		double ry=pos2d_bridge.get_y_pos();
 		// 绘制地图：
-		//ranger_bridge>>map_builder>>map;
-		ranger_bridge>>himm_uvgen( pos2d_bridge ,map )>>update_vectors>>dmm_builder( map , rx , ry )>>dmap;
-		// 在控制台显示地图：
-		//cout<<map;
-		cout<<dmap;
-		map_sv<<map;
-		map_sv<<dmap;
+		ranger_bridge>>himm_uvgen( pos2d_bridge ,map )>>update_vectors;
+		// 计算地图更新所用时间：
+		gettimeofday( &start_time , NULL );
+		update_vectors>>dmm_builder( map , rx , ry )>>dmap;
+		gettimeofday( &end_time , NULL );
+		double time_delta = end_time - start_time;
+		time_sum += end_time - start_time;
+		time_count++;
+		cout<<"["<<cir_counter<<"]utime="<<time_delta*1000000<<endl;
+
 		// 调用防撞漫游控制计算函数：
 		if(simple_collision_avoid( ranger_bridge , stc ))
 		{
@@ -126,33 +132,27 @@ int main( int argc, char* argv[] )
 			pos_index ++;
 			// 已经跑完一圈
 			if( pos_index >= pos_num )
-				//pos_index = 0;
-				break;
+			{
+				pos_index = 0;
+				//计算更新时间均值：
+				double atime = time_sum*1000000/time_count;
+				cout<<"["<<cir_counter<<"] average time="<<atime<<"us"<<endl;
+				datafile<<cir_counter<<"   "<<atime<<endl;
+				// 更新圈数：
+				cir_counter++;
+				if( cir_counter > MAX_CIR )
+					break;
+
+				//复位所有状态量：
+				time_sum = 0.0;
+				time_count = 0;
+			}
 		}
 		else
 			pos2d_bridge.set_speed( stc._ahead_veloc , stc._angular_veloc );
 
 	}
-	// 地图数据的保存
-	ofstream mapfile( "cvgrid01.cmap" );
-	mapfile<<map;
-	mapfile.close();
-	ifstream imapfile( "cvgrid01.cmap" );
-	HIMMGrid mp;
-	imapfile>>mp;
-	cout<<mp;
-	imapfile.close();
-	// 距离网格地图测试
-	ofstream dmapfile( "dmgrid01.dmap" );
-	dmapfile<<dmap;
-	dmapfile.close();
-	ifstream idmapfile( "dmgrid01.dmap" );
-	DistanceMap idmap;
-	idmapfile>>idmap;
-	cout<<idmap;
-	idmapfile.close();
-	//停止地图服务器
-	map_sv.stop();
+	datafile.close();
 	return EXIT_SUCCESS;
 }
 

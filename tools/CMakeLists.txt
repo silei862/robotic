@@ -14,11 +14,17 @@ SET (MAPVIEWER_SRC  canvas_test.cxx cvcanvas.cxx cvdraw.cxx )
 SET (MAPVIEWER_BIN mapviewer )
 
 INCLUDE_DIRECTORIES ( ${OPENCV_INCLUDE_DIRS} 
-					  ${PROJECT_SOURCE_DIR}/misc )
+					  ${PROJECT_SOURCE_DIR}/misc 
+					  ${PROJECT_SOURCE_DIR}/gridmap )
 
-LINK_DIRECTORIES ( ${OPENCV_LIBRARY_DIRS} )
+
+LINK_DIRECTORIES ( ${OPENCV_LIBRARY_DIRS} 
+				   ${CMAKE_BINARY_DIR}/gridmap )
 
 ADD_EXECUTABLE (${MAPVIEWER_BIN} ${MAPVIEWER_SRC})
 
 TARGET_LINK_LIBRARIES ( ${MAPVIEWER_BIN} ${OPENCV_LIBRARIES})
 
+########### mapconv ###########
+ADD_EXECUTABLE( mapconv mapconv.cxx )
+TARGET_LINK_LIBRARIES( mapconv gridmap )

@@ -27,7 +27,7 @@ using namespace SlamLab;
 ofstream& std::operator<<( ofstream& r_ofs , HIMMGrid& r_hg )
 {
 	HIMMGrid2Char hg2char;
-	hg2char.set_map( r_hg , 0 );
+	hg2char.set_map( r_hg , ID_CVMAP );
 	r_ofs.write( hg2char.data() , hg2char.size() );
 	return r_ofs;
 }
@@ -35,7 +35,7 @@ ofstream& std::operator<<( ofstream& r_ofs , HIMMGrid& r_hg )
 ofstream& std::operator<<( ofstream& r_ofs , DistanceMap& r_dm )
 {
 	DistanceGrid2Char dm2char;
-	dm2char.set_map( r_dm , 0 );
+	dm2char.set_map( r_dm , ID_DSMAP );
 	r_ofs.write( dm2char.data() , dm2char.size() );
 	return r_ofs;
 }

@@ -29,6 +29,11 @@ namespace SlamLab
 {
 
 	//int himm_savemap( HIMMGrid& r_hg ,const char* file );
+	enum _MAP_ID
+	{
+		ID_CVMAP = 1,
+		ID_DSMAP = 2,
+	};
 }
 
 namespace std
