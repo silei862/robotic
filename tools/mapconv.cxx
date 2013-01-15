@@ -96,10 +96,10 @@ int main( int argc , char* argv[] )
 		case ID_CVMAP:
 			mapfile>>himmgrid;
 			// 写入数据：
-			for( int j = himmgrid.cell_rows()-1 ; j >= 0 ; j-- )
+			for( int j = 0 ; j < himmgrid.cell_rows() ; j++ )
 			{
 				for( int i = 0 ; i < himmgrid.cell_cols() ; i++ )
-					datafile<<16 - himmgrid( uint32_t(i), uint32_t(j) )<<" ";
+					datafile<<int(himmgrid( uint32_t(i), uint32_t(j) ))<<" ";
 				datafile<<endl;
 			}
 			break;

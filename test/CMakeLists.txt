@@ -166,6 +166,9 @@ TARGET_LINK_LIBRARIES( gone mapbuilder
 							   planner
 					 		  ${PLAYERCXX_LIBRARIES}
 					 )
+############## misc test ######################
+ADD_EXECUTABLE( testmisc  testmisc.cxx )
+TARGET_LINK_LIBRARIES( testmisc misc )
 
 ############## Function Wrapper ################
 ADD_EXECUTABLE( funcwrapper funcwrapper.cxx )

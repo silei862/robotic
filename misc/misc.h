@@ -34,6 +34,12 @@ namespace SlamLab
 	double delta2rad( double dx , double dy );	
 	// 计算时间差：
 	double operator-( timeval_t& r_start , timeval_t& r_end ); 
+	// 产生min~max之间的均匀分布的随机数
+	double average_random( double min , double max );
+	// 产生正太分布随机函数
+	double randnormal( double means , double sigma );
+	// 产生min与max之间符合对数正态分布的随机函数
+	double lognormal_random( double u , double sigma, double min , double max );
 }
 
 #endif //_MISC_H_

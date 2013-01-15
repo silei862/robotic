@@ -59,6 +59,9 @@ void DMMBuilder::update()
 	{
 		// 使用更新向量更新概率网格地图
 		update_vector_t& r_uvec = (*p_uvecs)[ i ];
+		// 更新向量合法性检查：
+		if( ! p_cmap->in( r_uvec.x , r_uvec.y ) )
+			continue;
 		int32_t val = int32_t((*p_cmap)( r_uvec.x , r_uvec.y ));
 		int32_t new_val = val + r_uvec.delta;
 		// 值限定并更新概率网格地图
