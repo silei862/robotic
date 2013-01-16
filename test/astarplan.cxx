@@ -1,12 +1,12 @@
 /*
 * =====================================================================================
 *
-*       Filename:  main.cc
+*       Filename:  astarplan.cxx
 *
-*    Description:  Mapping by laser
+*    Description:  路径规划及导航控制测试
 *
 *        Version:  1.0
-*        Created:  2012年04月06日 13时39分10秒
+*        Created:  2012年10月06日 14时32分20秒
 *       Revision:  none
 *       Compiler:  gcc
 *
@@ -207,9 +207,15 @@ int main( int argc, char* argv[] )
 	}
 	catch( Exception& e )
 	{
-		cout<<e<<endl;
+		cerr<<e<<endl;
 		return EXIT_FAILURE;
 	}
+	catch(PlayerCc::PlayerError& e )
+	{
+		cerr<<e<<endl;
+		return EXIT_FAILURE;	
+	}
+	
 	return EXIT_SUCCESS;
 }
 
