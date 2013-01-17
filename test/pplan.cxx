@@ -67,18 +67,18 @@ int main()
 		// 读入距离地图数据
 		idsmap>>dmap;
 		// 显示地图，检查正确性
-		cout<<dmap;
+		//cout<<dmap;
 		// 读入参数：
 		double sx ,sy ,sth;
-		sx = -6;
-		sy = -6;
-		sth = -2;
+		sx = 6;
+		sy = -2.5;
+		sth = 1.57;
 		//cout<<"start_x=";cin>>sx;
 		//cout<<"start_y=";cin>>sy;
 		//cout<<"start_th=";cin>>sth;
 		double ex , ey;
-		ex = 6;
-		ey = 6;
+		ex = 0;
+		ey = 7;
 		//cout<<"end x=";cin>>ex;
 		//cout<<"end y=";cin>>ey;
 		
@@ -89,49 +89,76 @@ int main()
 		
 		path_t paths;
 		
+		// 读入参数：
+		double w1, w2,w3;
+		cout<<"w1=";cin>>w1;
+		cout<<"w2=";cin>>w2;
+		cout<<"w3=";cin>>w3;
+		// 生成路径文件名：
+		char pdf[128]={0};
+		sprintf( pdf , "path_%d%d%d.dat", int(w1*10), int(w2*10),int(w3*10) );
 		// 打开路径输出文件：
-		ofstream pathfile( "path.dat" );
+		ofstream pathfile( pdf );
 		if( pathfile.fail() )
 		{
-			cout<<"无法创建"<<"path.dat"<<",退出！"<<endl;
+			cout<<"无法创建"<<pdf<<",退出！"<<endl;
 			return EXIT_FAILURE;
 		}
-
+	/*  ofstream tdfile( "path_test_time.dat" );
 		// 获取路径并测量规划路径耗时：
 		struct timeval start_time;
 		struct timeval end_time;
-		double time_sum = 0;
 		size_t NTEST = 100;
-		bool success = false;
-		for( size_t i = 0 ; i < NTEST ; i++ )
+		for( int k =1 ; k < 9 ; k++ )
 		{
-			// 设置启发函数参数：
-			guider.set_heuristic_para( 0.25 , 0.25 , 0.5);
+			for( int l = 1 ; l < 10 - k ; l ++ )
+			{
+				double time_sum = 0;
+				double kd = k*0.1;
+				double ld = l*0.1;
+				double dw = 1 - kd -ld ;
+				bool success = false;
+				for( size_t i = 0 ; i < NTEST ; i++ )
+				{
+					// 设置启发函数参数：
+					guider.set_heuristic_para( kd , ld , dw );
+					guider.set_start( -6 , -6 , -2 );
+					guider.set_destination( 6 , 6 );
+					gettimeofday( &start_time , NULL );
+					success= guider.get_path( paths );
+					gettimeofday( &end_time , NULL );
+					time_sum += end_time - start_time;
+					if( !success )
+					{
+						cout<<"Error Time!";
+						return EXIT_FAILURE;
+					}
 
-			gettimeofday( &start_time , NULL );
-			success= guider.get_path( paths );
-			gettimeofday( &end_time , NULL );
-			if(!success)
-			{
-				cout<<"路径获取失败！"<<endl;
-				break;
+				}
+				double av_tm = time_sum*1000/NTEST;
+				cout<<"["<<kd<<","<<ld<<","<<dw<<"] ";
+				cout<<" Average Time:"<<av_tm<<endl;
+				tdfile<<"w0="<<kd<<" w1="<<dw<<" w2="<<ld<<" time="<<av_tm<<"ms"<<endl;
 			}
-			time_sum += end_time - start_time;
+			tdfile<<endl;
 		}
-		if( success )
-		{
-			cout<<"成功获取路径！"<<endl;
-			cout<<"Average Time:"<<time_sum*1000/NTEST<<endl;
-			cout<<"[Start]-->";
-			for( size_t i =0; i<paths.size(); i++ )
+		tdfile.close();
+*/
+			guider.set_heuristic_para(w1,w3,w2);
+			bool success= guider.get_path( paths );
+			if( success )
 			{
-				cout<<"["<<paths[i]._x<<","<<paths[i]._y<<"]-->";
-				pathfile<<paths[i]._x<<"      "<<paths[i]._y<<endl;
+				cout<<"成功获取路径！"<<endl;
+				cout<<"[Start]-->";
+				for( size_t i =0; i<paths.size(); i++ )
+				{
+					cout<<"["<<paths[i]._x<<","<<paths[i]._y<<"]-->";
+					pathfile<<paths[i]._x<<"      "<<paths[i]._y<<endl;
+				}
+				cout<<"[End]"<<endl;
 			}
-			cout<<"[End]"<<endl;
-		}
-		else
-			cout<<" Get path fail!" <<endl;
+			else
+				cout<<" Get path fail!" <<endl; 
 		pathfile.close();
 	}
 	catch( Exception& e )

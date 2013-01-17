@@ -231,14 +231,19 @@ DSGGuider::_fill_heuristic( exnode_t& r_node )
 	r_node._depth = 0;
 	// 计算深度：
 	if( r_node.p_parent )
-		r_node._depth = r_node.p_parent->_depth + 1;
+	{
+		int pdir = int( r_node.p_parent->_direction );
+		double inc = 1 + double(pdir%2)*double(sqrt(2.0) - 1.0 );
+		r_node._depth = r_node.p_parent->_depth + inc;
+	}
+	double depth = p_dmap->cell_size()*r_node._depth;
 	// 计算与目标距离：
 	double dx = double( _dest_cell._x ) - double( r_node._pos._x );
 	double dy = double( _dest_cell._y ) - double( r_node._pos._y );
-	double dd = sqrt( dx*dx + dy*dy );
+	double dd = sqrt( dx*dx + dy*dy )*p_dmap->cell_size();
 	// 获取节点对应网格处距离值：
 	double dval = p_dmap->max_distance() - (*p_dmap)( r_node._pos )._d;
-	r_node._heuristic = r_node._depth*h_depth + dd*h_destination + dval*h_dval;
+	r_node._heuristic = depth*h_depth + dd*h_destination + dval*h_dval;
 }
 
 void
