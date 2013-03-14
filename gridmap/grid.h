@@ -163,7 +163,7 @@ namespace SlamLab
 				_grid_data = grid._grid_data;
 			}
 			TP& operator()( uint32_t x, uint32_t y ){ return _grid_data( x,y ); }
-			TP& operator()( size_t i , size_t j ){ return _grid_data( uint32_t( i ) , uint32_t( j ) ); }
+			//TP& operator()( size_t i , size_t j ){ return _grid_data( uint32_t( i ) , uint32_t( j ) ); }
 			TP& operator()( double x, double y ){ return _grid_data( uint32_t((x-_origin._x)/_cell_size), uint32_t((y-_origin._y)/_cell_size)); }
 		
 		private:
